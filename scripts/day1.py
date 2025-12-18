@@ -35,5 +35,6 @@ def temp_test(temp):
     print("LLM: ",response.output_text)
 
 if __name__=="__main__":
-    for t in [0, 0.7, 1.2]:
+    # basic_chat()
+    for t in [0, 0.7, 1.2, 2]:
         temp_test(t)
