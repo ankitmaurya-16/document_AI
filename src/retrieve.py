@@ -4,19 +4,12 @@ import faiss
 import numpy as np
 from sentence_transformers import SentenceTransformer
 from typing import List, Dict
+from config import INDEX_DIR, FAISS_INDEX_PATH, METADATA_PATH, EMBEDDING_MODEL_NAME, TOP_K, SIMILARITY_THRESHOLD
 
-INDEX_DIR = "data/index"
-FAISS_INDEX_PATH = os.path.join(INDEX_DIR, "faiss.index")
-METADATA_PATH = os.path.join(INDEX_DIR, "metadata.json")
-EMBEDDING_MODEL = "all-MiniLM-L6-v2"
-
-TOP_K=5
-SIMILARITY_THRESHOLD = 0.25
-
-model = SentenceTransformer(EMBEDDING_MODEL)
+model = SentenceTransformer(EMBEDDING_MODEL_NAME)
 
 index = faiss.read_index(FAISS_INDEX_PATH)
-
+index.hnsw.efSearch = 64
 with open(METADATA_PATH, "r", encoding="utf-8") as f:
     metadata = json.load(f)
 
@@ -37,7 +30,4 @@ def retrieve(query:str, top_k:int=TOP_K,threshold:float=SIMILARITY_THRESHOLD)->L
         results.append({"chunk_id":chunk["chunk_id"],"source":chunk["source"],"text":chunk["text"],"score":float(score)})
     return results
 
-if __name__=="__main__":
-    results=retrieve("What is RAG?")
-    print(len(results))
-    print(results[1]["chunk_id"])
+

@@ -1,5 +1,10 @@
-from src.retrieve import retrieve
+import os
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
-results=retrieve("What is RAG?")
-print(len(results))
-print(results[0].keys())
+from retrieve import retrieve
+from generate import generate_answer
+
+question = "what is RAG?"
+chunks = retrieve(question)
+answer = generate_answer(question, chunks)
+print(answer)

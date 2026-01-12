@@ -2,506 +2,371 @@
   {
     "chunk_id": "file2.txt_chunk_0",
     "source": "file2.txt",
-    "text": "\nPinecone Dedicated Read Nodes are in Public Preview: Predictable speed and cost for billion-vector and high-QPS workloads - Learn more\nDismiss\n\u2190 Learn\nRetrieval-Augmented Generation (RAG)\nJenna Pederson\nJenna Pederson\nJun 12, 2025\nCore Components\nShare:\nJump to section:\nLimitations of foundation mo"
+    "text": "Pinecone Dedicated Read Nodes are in Public Preview: Predictable speed and cost for billion-vector and high-QPS workloads - Learn more\nDismiss\n\u2190 Learn\nRetrieval-Augmented Generation (RAG)\nJenna Pederson\nJenna Pederson\nJun 12, 2025\nCore Components\nShare:\nJump to section:\nLimitations of foundation models\nWhat is Retrieval-Augmented Generation?\nHow does Retrieval-Augmented Generation work?\nWrapping up"
   },
   {
     "chunk_id": "file2.txt_chunk_1",
     "source": "file2.txt",
-    "text": "are:\nJump to section:\nLimitations of foundation models\nWhat is Retrieval-Augmented Generation?\nHow does Retrieval-Augmented Generation work?\nWrapping up\nShare:\nSubscribe to Pinecone\nGet the latest updates via email when they're published:\n\nemail@address.com\nGet Updates\nNot only are foundation models"
+    "text": "does Retrieval-Augmented Generation work?\nWrapping up\nShare:\nSubscribe to Pinecone\nGet the latest updates via email when they're published:\n\nemail@address.com\nGet Updates\nNot only are foundation models stuck in the past, but they intentionally produce natural-sounding and varied responses. Both of these can lead to confidently inaccurate and irrelevant output. This behavior is known as \u201challucination.\u201d"
   },
   {
     "chunk_id": "file2.txt_chunk_2",
     "source": "file2.txt",
-    "text": "ess.com\nGet Updates\nNot only are foundation models stuck in the past, but they intentionally produce natural-sounding and varied responses. Both of these can lead to confidently inaccurate and irrelevant output. This behavior is known as \u201challucination.\u201d\n\nIn this article, we\u2019ll explore the limitatio"
+    "text": "output. This behavior is known as \u201challucination.\u201d\n\nIn this article, we\u2019ll explore the limitations of foundation models and how retrieval-augmented generation (RAG) can address these limitations so chat, search, and agentic workflows can all benefit.\n\nLimitations of foundation models\nProducts built on top of foundation models alone are brilliant yet flawed as foundation models have multiple limitations:"
   },
   {
     "chunk_id": "file2.txt_chunk_3",
     "source": "file2.txt",
-    "text": "on.\u201d\n\nIn this article, we\u2019ll explore the limitations of foundation models and how retrieval-augmented generation (RAG) can address these limitations so chat, search, and agentic workflows can all benefit.\n\nLimitations of foundation models\nProducts built on top of foundation models alone are brillian"
+    "text": "flawed as foundation models have multiple limitations:\n\nKnowledge cutoffs\nWhen you ask current models about recent events \u2013 like asking about last week\u2019s NBA basketball game or how to use features in the latest iPhone model - they may confidently provide outdated or completely fabricated information, the hallucinations we mentioned earlier.\n\nModels are trained on massive datasets containing years of"
   },
   {
     "chunk_id": "file2.txt_chunk_4",
     "source": "file2.txt",
-    "text": "ilt on top of foundation models alone are brilliant yet flawed as foundation models have multiple limitations:\n\nKnowledge cutoffs\nWhen you ask current models about recent events \u2013 like asking about last week\u2019s NBA basketball game or how to use features in the latest iPhone model - they may confident"
+    "text": "are trained on massive datasets containing years of human knowledge and creative output from code repositories, books, websites, conversations, scientific papers, and more. But after a model is trained, this data is frozen at a specific point in time, the \u201ccutoff\u201d. This cutoff creates a knowledge gap, leading them to generate plausible but incorrect responses when asked about recent developments."
   },
   {
     "chunk_id": "file2.txt_chunk_5",
     "source": "file2.txt",
-    "text": "es in the latest iPhone model - they may confidently provide outdated or completely fabricated information, the hallucinations we mentioned earlier.\n\nModels are trained on massive datasets containing years of human knowledge and creative output from code repositories, books, websites, conversations,"
+    "text": "incorrect responses when asked about recent developments.\n\nLack depth in domain-specific knowledge\nFoundation models have broad knowledge, but can lack depth in specialized domains. High quality datasets might not exist publicly for a domain, not necessarily because they are private, but because they are highly specialized. Consider a medical model that knows about anatomy, disease, and surgical techniques,"
   },
   {
     "chunk_id": "file2.txt_chunk_6",
     "source": "file2.txt",
-    "text": "code repositories, books, websites, conversations, scientific papers, and more. But after a model is trained, this data is frozen at a specific point in time, the \u201ccutoff\u201d. This cutoff creates a knowledge gap, leading them to generate plausible but incorrect responses when asked about recent develop"
+    "text": "knows about anatomy, disease, and surgical techniques, but struggles with rare genetic conditions and cutting edge therapies. This data might exist publicly to be used during training, but it may not appear enough to train the model correctly. It also requires expert-level knowledge during the training process to contextualize the information.\n\nThis limitation can result in responses that are incomplete"
   },
   {
     "chunk_id": "file2.txt_chunk_7",
     "source": "file2.txt",
-    "text": "ncorrect responses when asked about recent developments.\n\nLack depth in domain-specific knowledge\nFoundation models have broad knowledge, but can lack depth in specialized domains. High quality datasets might not exist publicly for a domain, not necessarily because they are private, but because they"
+    "text": "limitation can result in responses that are incomplete or irrelevant.\n\nLack private or proprietary data\nIn the case of general-purpose, public models, the data (your data) does not exist publicly and is inaccessible during training. This means that models don\u2019t know the specifics of your business, whether that be internal company processes and policies, personnel data or email communications, or even"
   },
   {
     "chunk_id": "file2.txt_chunk_8",
     "source": "file2.txt",
-    "text": "ssarily because they are private, but because they are highly specialized. Consider a medical model that knows about anatomy, disease, and surgical techniques, but struggles with rare genetic conditions and cutting edge therapies. This data might exist publicly to be used during training, but it may"
+    "text": "policies, personnel data or email communications, or even the trade secrets of your company. And for good reason: if this data had been included in the training, anyone using the model would potentially gain access to your company\u2019s private and proprietary data.\n\nAgain, this limitation can result in incomplete or irrelevant responses, limiting the usefulness of the model for your custom business purpose."
   },
   {
     "chunk_id": "file2.txt_chunk_9",
     "source": "file2.txt",
-    "text": "st publicly to be used during training, but it may not appear enough to train the model correctly. It also requires expert-level knowledge during the training process to contextualize the information.\n\nThis limitation can result in responses that are incomplete or irrelevant.\n\nLack private or propri"
+    "text": "usefulness of the model for your custom business purpose.\n\nLoses trust\nModels typically cannot cite their sources related to a specific response. Without citations or references, the user either has to trust the response or validate the claim themselves. Given that models are trained on vast amounts of public data, there is a chance that the generated response is the result of an unauthoritative source."
   },
   {
     "chunk_id": "file2.txt_chunk_10",
     "source": "file2.txt",
-    "text": " incomplete or irrelevant.\n\nLack private or proprietary data\nIn the case of general-purpose, public models, the data (your data) does not exist publicly and is inaccessible during training. This means that models don\u2019t know the specifics of your business, whether that be internal company processes a"
+    "text": "response is the result of an unauthoritative source.\n\nWhen inaccurate, irrelevant, and useless information is generated, users will lose trust in the model itself, even when this behavior is inherent in how foundation models work.\n\nOutput generation is probabilistic\nHallucinations are often a symptom of the limitations just described. However, models are trained on a diverse set of data that can contain"
   },
   {
     "chunk_id": "file2.txt_chunk_11",
     "source": "file2.txt",
-    "text": "ness, whether that be internal company processes and policies, personnel data or email communications, or even the trade secrets of your company. And for good reason: if this data had been included in the training, anyone using the model would potentially gain access to your company\u2019s private and pr"
+    "text": "are trained on a diverse set of data that can contain contradictions, errors, and ambiguous data (in addition to the correct data). Because of this, models assign probabilities to all possible continuations, even the wrong ones. Because of sampling randomness like temperature and top k combined with how a user constructs a prompt (maybe it\u2019s too vague or contains misleading context), models may choose"
   },
   {
     "chunk_id": "file2.txt_chunk_12",
     "source": "file2.txt",
-    "text": "ially gain access to your company\u2019s private and proprietary data.\n\nAgain, this limitation can result in incomplete or irrelevant responses, limiting the usefulness of the model for your custom business purpose.\n\nLoses trust\nModels typically cannot cite their sources related to a specific response. W"
+    "text": "or contains misleading context), models may choose the wrong continuation. The result is output that can contain hallucinations.\n\nAdditionally, models don\u2019t always distinguish between what they know vs what they don\u2019t know, sounding confident even when incomplete, inaccurate, or irrelevant. Hallucinations can produce unwanted behaviors and even be dangerous. For example, an inaccurate but highly convincing"
   },
   {
     "chunk_id": "file2.txt_chunk_13",
     "source": "file2.txt",
-    "text": "te their sources related to a specific response. Without citations or references, the user either has to trust the response or validate the claim themselves. Given that models are trained on vast amounts of public data, there is a chance that the generated response is the result of an unauthoritativ"
+    "text": "dangerous. For example, an inaccurate but highly convincing medical report could lead to life-threatening treatments or no treatment at all.\n\nThese foundation model limitations can impact your business bottom line and erode the trust of your users. Retrieval-augmented generation can address these limitations.\n\nWhat is Retrieval-Augmented Generation?\nRetrieval-augmented generation, or RAG, is a technique"
   },
   {
     "chunk_id": "file2.txt_chunk_14",
     "source": "file2.txt",
-    "text": "erated response is the result of an unauthoritative source.\n\nWhen inaccurate, irrelevant, and useless information is generated, users will lose trust in the model itself, even when this behavior is inherent in how foundation models work.\n\nOutput generation is probabilistic\nHallucinations are often a"
+    "text": "Retrieval-augmented generation, or RAG, is a technique that uses authoritative, external data to improve the accuracy, relevancy, and usefulness of a model\u2019s output. It does this through the following four core components, which we\u2019ll cover in more detail later in this article:\n\nIngestion: authoritative data like company proprietary data is loaded into a data source, like a Pinecone vector database"
   },
   {
     "chunk_id": "file2.txt_chunk_15",
     "source": "file2.txt",
-    "text": "ration is probabilistic\nHallucinations are often a symptom of the limitations just described. However, models are trained on a diverse set of data that can contain contradictions, errors, and ambiguous data (in addition to the correct data). Because of this, models assign probabilities to all possib"
+    "text": "into a data source, like a Pinecone vector database\nRetrieval: relevant data is retrieved from an external data source based on a user query\nAugmentation: the retrieved data and the user query are combined into a prompt to provide the model with context for the generation step\nGeneration: the model generates output from the augmented prompt, using the context to drive a more accurate and relevant response."
   },
   {
     "chunk_id": "file2.txt_chunk_16",
     "source": "file2.txt",
-    "text": "of this, models assign probabilities to all possible continuations, even the wrong ones. Because of sampling randomness like temperature and top k combined with how a user constructs a prompt (maybe it\u2019s too vague or contains misleading context), models may choose the wrong continuation. The result "
+    "text": "context to drive a more accurate and relevant response.\nShows traditional RAG from user query and chunking/embedding to vector search and rerank to generated LLM output.\nTraditional RAG\nBy combining relevant data from an external data source with the user\u2019s query and providing it to the model as context for the generation step, the model will use it to generate a more accurate and relevant output."
   },
   {
     "chunk_id": "file2.txt_chunk_17",
     "source": "file2.txt",
-    "text": "els may choose the wrong continuation. The result is output that can contain hallucinations.\n\nAdditionally, models don\u2019t always distinguish between what they know vs what they don\u2019t know, sounding confident even when incomplete, inaccurate, or irrelevant. Hallucinations can produce unwanted behavior"
+    "text": "it to generate a more accurate and relevant output.\n\nRAG provides the following benefits:\n\nAccess to real-time data and proprietary or domain-specific data: bring in knowledge relevant to your situation - current events, news, social media, customer data, proprietary data\nBuilds trust: more relevant and accurate results are more likely to earn trust and source citations allow human review\nMore control:"
   },
   {
     "chunk_id": "file2.txt_chunk_18",
     "source": "file2.txt",
-    "text": "vant. Hallucinations can produce unwanted behaviors and even be dangerous. For example, an inaccurate but highly convincing medical report could lead to life-threatening treatments or no treatment at all.\n\nThese foundation model limitations can impact your business bottom line and erode the trust of"
+    "text": "and source citations allow human review\nMore control: control over which sources are used, real-time data access, authorization to data, guardrails/safety/compliance, traceability/source citations, retrieval strategies, cost, tune each component independently of the others\nCost-effective compared to alternatives like training/re-training your own model, fine-tuning, or stuffing the context window:"
   },
   {
     "chunk_id": "file2.txt_chunk_19",
     "source": "file2.txt",
-    "text": "t your business bottom line and erode the trust of your users. Retrieval-augmented generation can address these limitations.\n\nWhat is Retrieval-Augmented Generation?\nRetrieval-augmented generation, or RAG, is a technique that uses authoritative, external data to improve the accuracy, relevancy, and "
+    "text": "model, fine-tuning, or stuffing the context window: foundation models are costly to produce and require specialized knowledge to create, as is fine-tuning; the larger the context sent to the model, the higher the cost\nRAG in support of agentic workflows\nBut this traditional RAG approach is simple, often with a vector database and a one-shot prompt with context sent to the model to generate output."
   },
   {
     "chunk_id": "file2.txt_chunk_20",
     "source": "file2.txt",
-    "text": "rnal data to improve the accuracy, relevancy, and usefulness of a model\u2019s output. It does this through the following four core components, which we\u2019ll cover in more detail later in this article:\n\nIngestion: authoritative data like company proprietary data is loaded into a data source, like a Pinecon"
+    "text": "with context sent to the model to generate output. With the rise of AI agents, agents are now orchestrators of the core RAG components to:\n\nconstruct more effective queries\naccess additional retrieval tools\nevaluate the accuracy and relevance of the retrieved context\napply reasoning to validate retrieved information, to trust or discard it.\nThese operations can be performed by an agent or agents as"
   },
   {
     "chunk_id": "file2.txt_chunk_21",
     "source": "file2.txt",
-    "text": " data is loaded into a data source, like a Pinecone vector database\nRetrieval: relevant data is retrieved from an external data source based on a user query\nAugmentation: the retrieved data and the user query are combined into a prompt to provide the model with context for the generation step\nGenera"
+    "text": "operations can be performed by an agent or agents as part of a larger, iterative plan. Agents as orchestrators of RAG bring even more opportunities for review, revision of queries, reasoning or validation of context, allowing them to make better decisions, take more informed actions, and generate more accurate and relevant output.\n\nNow that we\u2019ve covered what RAG is, let\u2019s take a deeper dive into how"
   },
   {
     "chunk_id": "file2.txt_chunk_22",
     "source": "file2.txt",
-    "text": " model with context for the generation step\nGeneration: the model generates output from the augmented prompt, using the context to drive a more accurate and relevant response.\nShows traditional RAG from user query and chunking/embedding to vector search and rerank to generated LLM output.\nTraditiona"
+    "text": "covered what RAG is, let\u2019s take a deeper dive into how it works.\n\nHow does Retrieval-Augmented Generation work?\nRAG brings accuracy and relevancy to LLM output by relying on authoritative data sources like proprietary, domain-specific data and real-time information. But before we dig into how it does that, let\u2019s ask the questions: do you even need RAG and how will you know it\u2019s working?\n\nThis is where"
   },
   {
     "chunk_id": "file2.txt_chunk_23",
     "source": "file2.txt",
-    "text": "rch and rerank to generated LLM output.\nTraditional RAG\nBy combining relevant data from an external data source with the user\u2019s query and providing it to the model as context for the generation step, the model will use it to generate a more accurate and relevant output.\n\nRAG provides the following b"
+    "text": "and how will you know it\u2019s working?\n\nThis is where ground truth evaluations come in. In order to properly deploy any application, you need to know when it's working. AI applications are no different, and so identifying a set of queries and their expected answers is critical to knowing if your application is working. Maintaining that evaluation set is also critical to knowing where to improve over time,"
   },
   {
     "chunk_id": "file2.txt_chunk_24",
     "source": "file2.txt",
-    "text": "and relevant output.\n\nRAG provides the following benefits:\n\nAccess to real-time data and proprietary or domain-specific data: bring in knowledge relevant to your situation - current events, news, social media, customer data, proprietary data\nBuilds trust: more relevant and accurate results are more "
+    "text": "also critical to knowing where to improve over time, and whether those improvements are working. RAG itself is just one optimization, but there are others like query rewriting, chunk expansion, knowledge graphs and more.\n\nWith a good baseline, you can move on to implementing the four main components of RAG:\n\nIngestion\nIn simple traditional RAG, you\u2019ll retrieve data from a vector database like Pinecone,"
   },
   {
     "chunk_id": "file2.txt_chunk_25",
     "source": "file2.txt",
-    "text": "rust: more relevant and accurate results are more likely to earn trust and source citations allow human review\nMore control: control over which sources are used, real-time data access, authorization to data, guardrails/safety/compliance, traceability/source citations, retrieval strategies, cost, tun"
+    "text": "retrieve data from a vector database like Pinecone, using semantic search to find the true meaning of the user\u2019s query and retrieve relevant information instead of simply matching keywords in the query. We\u2019ll use Pinecone as an example here, but the concept applies to all vector databases.\n\nBut before we can retrieve the data, you have to ingest the data. Here are steps to get data into your database:"
   },
   {
     "chunk_id": "file2.txt_chunk_26",
     "source": "file2.txt",
-    "text": "/source citations, retrieval strategies, cost, tune each component independently of the others\nCost-effective compared to alternatives like training/re-training your own model, fine-tuning, or stuffing the context window: foundation models are costly to produce and require specialized knowledge to c"
+    "text": "data. Here are steps to get data into your database:\n\n\nChunk the data\nDuring the ingestion step, you\u2019ll load your authoritative data as vectors into Pinecone. You may have structured or unstructured data in the form of text, PDFs, emails, internal wikis, or databases. After cleaning the data, you may need to chunk it by dividing each piece of data, or document, into smaller chunks. Depending on the"
   },
   {
     "chunk_id": "file2.txt_chunk_27",
     "source": "file2.txt",
-    "text": " to produce and require specialized knowledge to create, as is fine-tuning; the larger the context sent to the model, the higher the cost\nRAG in support of agentic workflows\nBut this traditional RAG approach is simple, often with a vector database and a one-shot prompt with context sent to the model"
+    "text": "or document, into smaller chunks. Depending on the kind of data you have, the types of queries your users have, and how the results will be used in your application, you\u2019ll need to choose a chunking strategy.\n\nCreate vector embeddings\nThen, using an embedding model, you\u2019ll embed each chunk and load it into the vector database. The embedding model is a special type of LLM that converts the data chunk"
   },
   {
     "chunk_id": "file2.txt_chunk_28",
     "source": "file2.txt",
-    "text": "d a one-shot prompt with context sent to the model to generate output. With the rise of AI agents, agents are now orchestrators of the core RAG components to:\n\nconstruct more effective queries\naccess additional retrieval tools\nevaluate the accuracy and relevance of the retrieved context\napply reason"
+    "text": "a special type of LLM that converts the data chunk into a vector embedding, a numerical representation of the data\u2019s meaning. This allows computers to search for similar items based on the vector representation of the stored data.\n\nLoad data into a vector database\nOnce you have vectors, you\u2019ll load them into a vector database. This ingestion step most likely happens offline, independently of your application"
   },
   {
     "chunk_id": "file2.txt_chunk_29",
     "source": "file2.txt",
-    "text": "nd relevance of the retrieved context\napply reasoning to validate retrieved information, to trust or discard it.\nThese operations can be performed by an agent or agents as part of a larger, iterative plan. Agents as orchestrators of RAG bring even more opportunities for review, revision of queries, "
+    "text": "happens offline, independently of your application and your user\u2019s workflow. However, if your data changes, for instance, product inventory is updated, you can update the index in real-time to provide up-to-date information to your users.\n\nNow that your vector database contains the vector embeddings of your source data, the next step is retrieval.\n\nRetrieval\nA simple approach to retrieval would use"
   },
   {
     "chunk_id": "file2.txt_chunk_30",
     "source": "file2.txt",
-    "text": "re opportunities for review, revision of queries, reasoning or validation of context, allowing them to make better decisions, take more informed actions, and generate more accurate and relevant output.\n\nNow that we\u2019ve covered what RAG is, let\u2019s take a deeper dive into how it works.\n\nHow does Retriev"
+    "text": "Retrieval\nA simple approach to retrieval would use semantic search alone. But by using hybrid search, combining both semantic search (with dense vectors) and lexical search (with sparse vectors), you can improve the retrieval results even more. This becomes relevant when your users don\u2019t always use the same language to talk about a topic (semantic search) and they refer to internal, domain-specific"
   },
   {
     "chunk_id": "file2.txt_chunk_31",
     "source": "file2.txt",
-    "text": "a deeper dive into how it works.\n\nHow does Retrieval-Augmented Generation work?\nRAG brings accuracy and relevancy to LLM output by relying on authoritative data sources like proprietary, domain-specific data and real-time information. But before we dig into how it does that, let\u2019s ask the questions:"
+    "text": "search) and they refer to internal, domain-specific language (lexical or keyword search) like acronyms, product names, or team names.\n\nDuring retrieval, we\u2019ll create a vector embedding from the user\u2019s query to use for searching against the vectors in the database. In hybrid search, you\u2019ll query either a single hybrid index or both a dense and a sparse index. Then we combine and de-duplicate the results"
   },
   {
     "chunk_id": "file2.txt_chunk_32",
     "source": "file2.txt",
-    "text": "ig into how it does that, let\u2019s ask the questions: do you even need RAG and how will you know it\u2019s working?\n\nThis is where ground truth evaluations come in. In order to properly deploy any application, you need to know when it's working. AI applications are no different, and so identifying a set of "
+    "text": "index. Then we combine and de-duplicate the results and use a reranking model to rerank them based on a unified relevance score, and return the most relevant matches.\n\nAugmentation\nNow that you have the most relevant matches from the retrieval step, you\u2019ll create an augmented prompt with both the search results and the user\u2019s query to send to the LLM. This is where the magic happens.\n\nAn augmented"
   },
   {
     "chunk_id": "file2.txt_chunk_33",
     "source": "file2.txt",
-    "text": "ons are no different, and so identifying a set of queries and their expected answers is critical to knowing if your application is working. Maintaining that evaluation set is also critical to knowing where to improve over time, and whether those improvements are working. RAG itself is just one optim"
+    "text": "LLM. This is where the magic happens.\n\nAn augmented prompt might look like this:\n\nQUESTION:\n<the user's question>\n\nCONTEXT:\n<the search results to use as context>\n\nUsing the CONTEXT provided, answer the QUESTION. Keep your answer grounded in the facts of the CONTEXT. If the CONTEXT doesn't contain the answer to the QUESTION, say you don't know.\n\nBy sending both the search results and the user\u2019s question"
   },
   {
     "chunk_id": "file2.txt_chunk_34",
     "source": "file2.txt",
-    "text": "ovements are working. RAG itself is just one optimization, but there are others like query rewriting, chunk expansion, knowledge graphs and more.\n\nWith a good baseline, you can move on to implementing the four main components of RAG:\n\nIngestion\nIn simple traditional RAG, you\u2019ll retrieve data from a "
+    "text": "sending both the search results and the user\u2019s question as context to the LLM, you are encouraging it to use the more accurate and relevant info from the search results during the next generation step.\n\nGeneration\nUsing the augmented prompt, the LLM now has access to the most pertinent and grounding facts from your vector database so your application can provide an accurate answer for your user, reducing"
   },
   {
     "chunk_id": "file2.txt_chunk_35",
     "source": "file2.txt",
-    "text": "mple traditional RAG, you\u2019ll retrieve data from a vector database like Pinecone, using semantic search to find the true meaning of the user\u2019s query and retrieve relevant information instead of simply matching keywords in the query. We\u2019ll use Pinecone as an example here, but the concept applies to al"
+    "text": "provide an accurate answer for your user, reducing the likelihood of hallucination.\n\nBut RAG is no longer simply about searching for the right piece of information to inform a model response. With agentic RAG, it's about deciding which questions to ask, which tools to use, when to use them, and then aggregating results to ground answers.\n\nShows agentic RAG from user query to agent to tool selection"
   },
   {
     "chunk_id": "file2.txt_chunk_36",
     "source": "file2.txt",
-    "text": " as an example here, but the concept applies to all vector databases.\n\nBut before we can retrieve the data, you have to ingest the data. Here are steps to get data into your database:\n\n\nChunk the data\nDuring the ingestion step, you\u2019ll load your authoritative data as vectors into Pinecone. You may ha"
+    "text": "agentic RAG from user query to agent to tool selection with search via Pinecone vector database to generated LLM output.\nAgentic RAG\nIn this simple version, the LLM is the agent and decides which retrieval tools to use and when, and how to query those tools.\n\nWrapping up\nRetrieval-augmented generation has evolved from a buzzword to an indispensable foundation for AI applications. It blends the broad"
   },
   {
     "chunk_id": "file2.txt_chunk_37",
     "source": "file2.txt",
-    "text": "ritative data as vectors into Pinecone. You may have structured or unstructured data in the form of text, PDFs, emails, internal wikis, or databases. After cleaning the data, you may need to chunk it by dividing each piece of data, or document, into smaller chunks. Depending on the kind of data you "
+    "text": "foundation for AI applications. It blends the broad capabilities of foundation models with your company\u2019s authoritative and proprietary knowledge. With AI agents handling more complex use cases, from those supporting professionals servicing complex manufacturing equipment to delivering domain-specific agents at scale, RAG is not just relevant in 2025. It\u2019s critical for building accurate, relevant,"
   },
   {
     "chunk_id": "file2.txt_chunk_38",
     "source": "file2.txt",
-    "text": "smaller chunks. Depending on the kind of data you have, the types of queries your users have, and how the results will be used in your application, you\u2019ll need to choose a chunking strategy.\n\nCreate vector embeddings\nThen, using an embedding model, you\u2019ll embed each chunk and load it into the vector"
+    "text": "2025. It\u2019s critical for building accurate, relevant, and responsible AI applications that go beyond information retrieval. As AI agents become more autonomous and handle more complex workflows, they\u2019ll need to ground their reasoning in your private and domain-specific data through RAG. The question is no longer whether to implement RAG, but how to architect it most effectively for your unique use case"
   },
   {
     "chunk_id": "file2.txt_chunk_39",
     "source": "file2.txt",
-    "text": "ou\u2019ll embed each chunk and load it into the vector database. The embedding model is a special type of LLM that converts the data chunk into a vector embedding, a numerical representation of the data\u2019s meaning. This allows computers to search for similar items based on the vector representation of th"
+    "text": "architect it most effectively for your unique use case and data requirements.\n\nWant to dig into a RAG code example? Create a free Pinecone account and check out our example notebooks to implement retrieval-augmented generation with Pinecone or get started with Pinecone Assistant, to build production-grade chat and agent-based applications quickly.\n\nWas this article helpful?\n\nYes\nNo\nRecommended for"
   },
   {
     "chunk_id": "file2.txt_chunk_40",
     "source": "file2.txt",
-    "text": "lar items based on the vector representation of the stored data.\n\nLoad data into a vector database\nOnce you have vectors, you\u2019ll load them into a vector database. This ingestion step most likely happens offline, independently of your application and your user\u2019s workflow. However, if your data change"
+    "text": "Was this article helpful?\n\nYes\nNo\nRecommended for you\nFurther Reading\nLearn\nJun 25, 2025\nBeyond the hype: Why RAG remains essential for modern AI\nJenna Pederson\nJenna Pederson\nLearn\nOct 25, 2024\nBuilding a reliable, curated, and accurate RAG system with Cleanlab and Pinecone\nMatt Turk\nMatt Turk\nEngineering\nJan 16, 2024\nRAG makes LLMs better and equal\nAmnon Catav\nRoy Miara\nAmnon, Roy, Ilai, Nathan,"
   },
   {
     "chunk_id": "file2.txt_chunk_41",
     "source": "file2.txt",
-    "text": "your user\u2019s workflow. However, if your data changes, for instance, product inventory is updated, you can update the index in real-time to provide up-to-date information to your users.\n\nNow that your vector database contains the vector embeddings of your source data, the next step is retrieval.\n\nRetr"
+    "text": "equal\nAmnon Catav\nRoy Miara\nAmnon, Roy, Ilai, Nathan, Amir\n\n\u00a9 Pinecone Systems, Inc. | San Francisco, CA\n\nPinecone is a registered trademark of Pinecone Systems, Inc."
   },
   {
     "chunk_id": "file2.txt_chunk_42",
     "source": "file2.txt",
-    "text": "our source data, the next step is retrieval.\n\nRetrieval\nA simple approach to retrieval would use semantic search alone. But by using hybrid search, combining both semantic search (with dense vectors) and lexical search (with sparse vectors), you can improve the retrieval results even more. This beco"
-  },
-  {
-    "chunk_id": "file2.txt_chunk_43",
-    "source": "file2.txt",
-    "text": "improve the retrieval results even more. This becomes relevant when your users don\u2019t always use the same language to talk about a topic (semantic search) and they refer to internal, domain-specific language (lexical or keyword search) like acronyms, product names, or team names.\n\nDuring retrieval, w"
-  },
-  {
-    "chunk_id": "file2.txt_chunk_44",
-    "source": "file2.txt",
-    "text": "product names, or team names.\n\nDuring retrieval, we\u2019ll create a vector embedding from the user\u2019s query to use for searching against the vectors in the database. In hybrid search, you\u2019ll query either a single hybrid index or both a dense and a sparse index. Then we combine and de-duplicate the result"
-  },
-  {
-    "chunk_id": "file2.txt_chunk_45",
-    "source": "file2.txt",
-    "text": "index. Then we combine and de-duplicate the results and use a reranking model to rerank them based on a unified relevance score, and return the most relevant matches.\n\nAugmentation\nNow that you have the most relevant matches from the retrieval step, you\u2019ll create an augmented prompt with both the se"
-  },
-  {
-    "chunk_id": "file2.txt_chunk_46",
-    "source": "file2.txt",
-    "text": "you\u2019ll create an augmented prompt with both the search results and the user\u2019s query to send to the LLM. This is where the magic happens.\n\nAn augmented prompt might look like this:\n\nQUESTION:\n<the user's question>\n\nCONTEXT:\n<the search results to use as context>\n\nUsing the CONTEXT provided, answer th"
-  },
-  {
-    "chunk_id": "file2.txt_chunk_47",
-    "source": "file2.txt",
-    "text": "as context>\n\nUsing the CONTEXT provided, answer the QUESTION. Keep your answer grounded in the facts of the CONTEXT. If the CONTEXT doesn't contain the answer to the QUESTION, say you don't know.\n\nBy sending both the search results and the user\u2019s question as context to the LLM, you are encouraging i"
-  },
-  {
-    "chunk_id": "file2.txt_chunk_48",
-    "source": "file2.txt",
-    "text": "stion as context to the LLM, you are encouraging it to use the more accurate and relevant info from the search results during the next generation step.\n\nGeneration\nUsing the augmented prompt, the LLM now has access to the most pertinent and grounding facts from your vector database so your applicati"
-  },
-  {
-    "chunk_id": "file2.txt_chunk_49",
-    "source": "file2.txt",
-    "text": " facts from your vector database so your application can provide an accurate answer for your user, reducing the likelihood of hallucination.\n\nBut RAG is no longer simply about searching for the right piece of information to inform a model response. With agentic RAG, it's about deciding which questio"
-  },
-  {
-    "chunk_id": "file2.txt_chunk_50",
-    "source": "file2.txt",
-    "text": "ith agentic RAG, it's about deciding which questions to ask, which tools to use, when to use them, and then aggregating results to ground answers.\n\nShows agentic RAG from user query to agent to tool selection with search via Pinecone vector database to generated LLM output.\nAgentic RAG\nIn this simpl"
-  },
-  {
-    "chunk_id": "file2.txt_chunk_51",
-    "source": "file2.txt",
-    "text": "to generated LLM output.\nAgentic RAG\nIn this simple version, the LLM is the agent and decides which retrieval tools to use and when, and how to query those tools.\n\nWrapping up\nRetrieval-augmented generation has evolved from a buzzword to an indispensable foundation for AI applications. It blends the"
-  },
-  {
-    "chunk_id": "file2.txt_chunk_52",
-    "source": "file2.txt",
-    "text": "able foundation for AI applications. It blends the broad capabilities of foundation models with your company\u2019s authoritative and proprietary knowledge. With AI agents handling more complex use cases, from those supporting professionals servicing complex manufacturing equipment to delivering domain-s"
-  },
-  {
-    "chunk_id": "file2.txt_chunk_53",
-    "source": "file2.txt",
-    "text": "lex manufacturing equipment to delivering domain-specific agents at scale, RAG is not just relevant in 2025. It\u2019s critical for building accurate, relevant, and responsible AI applications that go beyond information retrieval. As AI agents become more autonomous and handle more complex workflows, the"
-  },
-  {
-    "chunk_id": "file2.txt_chunk_54",
-    "source": "file2.txt",
-    "text": " autonomous and handle more complex workflows, they\u2019ll need to ground their reasoning in your private and domain-specific data through RAG. The question is no longer whether to implement RAG, but how to architect it most effectively for your unique use case and data requirements.\n\nWant to dig into a"
-  },
-  {
-    "chunk_id": "file2.txt_chunk_55",
-    "source": "file2.txt",
-    "text": "se case and data requirements.\n\nWant to dig into a RAG code example? Create a free Pinecone account and check out our example notebooks to implement retrieval-augmented generation with Pinecone or get started with Pinecone Assistant, to build production-grade chat and agent-based applications quickl"
-  },
-  {
-    "chunk_id": "file2.txt_chunk_56",
-    "source": "file2.txt",
-    "text": "ion-grade chat and agent-based applications quickly.\n\nWas this article helpful?\n\nYes\nNo\nRecommended for you\nFurther Reading\nLearn\nJun 25, 2025\nBeyond the hype: Why RAG remains essential for modern AI\nJenna Pederson\nJenna Pederson\nLearn\nOct 25, 2024\nBuilding a reliable, curated, and accurate RAG syst"
-  },
-  {
-    "chunk_id": "file2.txt_chunk_57",
-    "source": "file2.txt",
-    "text": "uilding a reliable, curated, and accurate RAG system with Cleanlab and Pinecone\nMatt Turk\nMatt Turk\nEngineering\nJan 16, 2024\nRAG makes LLMs better and equal\nAmnon Catav\nRoy Miara\nAmnon, Roy, Ilai, Nathan, Amir\n\n\u00a9 Pinecone Systems, Inc. | San Francisco, CA\n\nPinecone is a registered trademark of Pinec"
-  },
-  {
-    "chunk_id": "file2.txt_chunk_58",
-    "source": "file2.txt",
-    "text": "o, CA\n\nPinecone is a registered trademark of Pinecone Systems, Inc."
+    "text": "is a registered trademark of Pinecone Systems, Inc."
   },
   {
     "chunk_id": "files1.txt_chunk_0",
     "source": "files1.txt",
-    "text": "A Developer\u2019s Guide to Approximate Nearest Neighbor (ANN) Algorithms\nBrian Hentschel\nXian Huang\nBrian Hentschel, Xian Huang\nMay 15, 2024\nCore Components\nShare:\nJump to section:\nWhat are Vector Indexing Algorithms?\nThe Vector Indexing Algorithm Landscape\nPopular Algorithms and their Analyses\nShare:\nS"
+    "text": "A Developer\u2019s Guide to Approximate Nearest Neighbor (ANN) Algorithms\nBrian Hentschel\nXian Huang\nBrian Hentschel, Xian Huang\nMay 15, 2024\nCore Components\nShare:\nJump to section:\nWhat are Vector Indexing Algorithms?\nThe Vector Indexing Algorithm Landscape\nPopular Algorithms and their Analyses\nShare:\nSubscribe to Pinecone\nGet the latest updates via email when they're published:\n\nemail@address.com\nGet"
   },
   {
     "chunk_id": "files1.txt_chunk_1",
     "source": "files1.txt",
-    "text": "ape\nPopular Algorithms and their Analyses\nShare:\nSubscribe to Pinecone\nGet the latest updates via email when they're published:\n\nemail@address.com\nGet Updates\nVector databases are emerging as a core part of the AI tech stack, serving knowledge to large language models (LLMs). A crucial part of vecto"
+    "text": "email when they're published:\n\nemail@address.com\nGet Updates\nVector databases are emerging as a core part of the AI tech stack, serving knowledge to large language models (LLMs). A crucial part of vector databases is the ANN algorithms they use to index data, as they can affect query performance, including recall, latency, and the system's overall cost. This article will give an overview of the vector"
   },
   {
     "chunk_id": "files1.txt_chunk_2",
     "source": "files1.txt",
-    "text": "ge language models (LLMs). A crucial part of vector databases is the ANN algorithms they use to index data, as they can affect query performance, including recall, latency, and the system's overall cost. This article will give an overview of the vector indexing landscape and analyses of a few popula"
+    "text": "cost. This article will give an overview of the vector indexing landscape and analyses of a few popular algorithms.\n\nWhat are Vector Indexing Algorithms?\nIndexing structures, usually a collection of algorithms, consist of two components. The first is the algorithm for updating data: how inserts, deletes, and updates change the structure. The goal here is to put as little effort into creating a useful"
   },
   {
     "chunk_id": "files1.txt_chunk_3",
     "source": "files1.txt",
-    "text": "or indexing landscape and analyses of a few popular algorithms.\n\nWhat are Vector Indexing Algorithms?\nIndexing structures, usually a collection of algorithms, consist of two components. The first is the algorithm for updating data: how inserts, deletes, and updates change the structure. The goal her"
+    "text": "here is to put as little effort into creating a useful structure for searching as possible. The second is the algorithm for searching: search algorithms use the structure created during updates to find vectors relevant to the target query.\n\nThe Vector Indexing Algorithm Landscape\nAlgorithms don\u2019t exist alone. We can only analyze their performance in the context of broader systems. An important framework"
   },
   {
     "chunk_id": "files1.txt_chunk_4",
     "source": "files1.txt",
-    "text": "es, and updates change the structure. The goal here is to put as little effort into creating a useful structure for searching as possible. The second is the algorithm for searching: search algorithms use the structure created during updates to find vectors relevant to the target query.\n\nThe Vector I"
+    "text": "context of broader systems. An important framework for analyzing indexing algorithms is their interaction with storage media. Different algorithms work better or worse depending on the access characteristics of the media on which they are stored.\n\nA brief overview of storage media\nStorage media are generally viewed as having a hierarchy, where things high up in the hierarchy cost more but have higher"
   },
   {
     "chunk_id": "files1.txt_chunk_5",
     "source": "files1.txt",
-    "text": "ectors relevant to the target query.\n\nThe Vector Indexing Algorithm Landscape\nAlgorithms don\u2019t exist alone. We can only analyze their performance in the context of broader systems. An important framework for analyzing indexing algorithms is their interaction with storage media. Different algorithms "
+    "text": "high up in the hierarchy cost more but have higher performance, as shown in the diagram below. The three we will focus on are main memory, flash disk, and remote secondary storage (cloud object storage). At a high level, these have the following properties:\n\nMemory: Expensive but fast. High bandwidth, low latency, high cost.\nFlash disk: Medium latency, medium bandwidth, medium cost.\nObject storage:"
   },
   {
     "chunk_id": "files1.txt_chunk_6",
     "source": "files1.txt",
-    "text": "eraction with storage media. Different algorithms work better or worse depending on the access characteristics of the media on which they are stored.\n\nA brief overview of storage media\nStorage media are generally viewed as having a hierarchy, where things high up in the hierarchy cost more but have "
+    "text": "latency, medium bandwidth, medium cost.\nObject storage: High latency, medium bandwidth, low cost.\nStorage media overview\nStorage media overview\nWith this in mind, let\u2019s examine the main types of algorithms and how they utilize different storage media.\n\nMain types of vector indexing algorithms\nBased on how vectors are structured, vector indexing algorithms can be divided into three main categories:"
   },
   {
     "chunk_id": "files1.txt_chunk_7",
     "source": "files1.txt",
-    "text": "hings high up in the hierarchy cost more but have higher performance, as shown in the diagram below. The three we will focus on are main memory, flash disk, and remote secondary storage (cloud object storage). At a high level, these have the following properties:\n\nMemory: Expensive but fast. High ba"
+    "text": "algorithms can be divided into three main categories:\n\nSpatial Partitioning (also known as cluster-based indexing or clustering indexes)\nGraph-based indexing (e.g. HNSW)\nHash-based indexing (e.g., locality-sensitive hashing)\nWe\u2019ll skip hash-based indexing in this article because its performance on all aspects, including reads, writes, and storage, is currently worse than that of graph-based and spatial"
   },
   {
     "chunk_id": "files1.txt_chunk_8",
     "source": "files1.txt",
-    "text": "g properties:\n\nMemory: Expensive but fast. High bandwidth, low latency, high cost.\nFlash disk: Medium latency, medium bandwidth, medium cost.\nObject storage: High latency, medium bandwidth, low cost.\nStorage media overview\nStorage media overview\nWith this in mind, let\u2019s examine the main types of alg"
+    "text": "currently worse than that of graph-based and spatial partitioning-based indexing. Almost no vector databases use hash-based indexing nowadays.\n\nSpatial Partitioning\nA spatial partitioning index organizes data into regions. Vectors are stored alongside other nearby vectors in the same region of space. Each partition is represented by a representative point, usually the centroid of the data points stored"
   },
   {
     "chunk_id": "files1.txt_chunk_9",
     "source": "files1.txt",
-    "text": " this in mind, let\u2019s examine the main types of algorithms and how they utilize different storage media.\n\nMain types of vector indexing algorithms\nBased on how vectors are structured, vector indexing algorithms can be divided into three main categories:\n\nSpatial Partitioning (also known as cluster-ba"
+    "text": "point, usually the centroid of the data points stored in the partition. Queries operate in two stages: first, they find the representative points closest to them. Then, they scan those partitions (see the example below, wherein a query at the red x).\n\nSpatial partitioning\nSpatial partitioning\nBecause points in a region are stored contiguously, partitioning indexes tend to make longer sequential reads"
   },
   {
     "chunk_id": "files1.txt_chunk_10",
     "source": "files1.txt",
-    "text": "s:\n\nSpatial Partitioning (also known as cluster-based indexing or clustering indexes)\nGraph-based indexing (e.g. HNSW)\nHash-based indexing (e.g., locality-sensitive hashing)\nWe\u2019ll skip hash-based indexing in this article because its performance on all aspects, including reads, writes, and storage, i"
+    "text": "partitioning indexes tend to make longer sequential reads than graph indexes. These types of indexes generally have a low storage footprint and are fast for writes. They work well with mediums that have higher bandwidth.\n\nSpatial partitioning indexing has several benefits. First, they have very little space overhead. The structures they create for updating data and querying consist of representative"
   },
   {
     "chunk_id": "files1.txt_chunk_11",
     "source": "files1.txt",
-    "text": "l aspects, including reads, writes, and storage, is currently worse than that of graph-based and spatial partitioning-based indexing. Almost no vector databases use hash-based indexing nowadays.\n\nSpatial Partitioning\nA spatial partitioning index organizes data into regions. Vectors are stored alongs"
+    "text": "updating data and querying consist of representative points. There are far fewer centroids than actual vectors, reducing the space overhead.\n\nSecond, they can work well with object storage as they tend to make fewer, longer sequential reads than graph indexes.\n\nHowever, they have lower query throughput than graph-based indexes in memory and on disk.\n\nYou can read this paper to learn more about spatial-partitioning"
   },
   {
     "chunk_id": "files1.txt_chunk_12",
     "source": "files1.txt",
-    "text": "nizes data into regions. Vectors are stored alongside other nearby vectors in the same region of space. Each partition is represented by a representative point, usually the centroid of the data points stored in the partition. Queries operate in two stages: first, they find the representative points "
+    "text": "this paper to learn more about spatial-partitioning indexing.\n\nGraph-Based Indexing\nAs their name suggests, graph-based indexes organize data as a graph. Reads start at an entry point and work by traversing the graph greedily by performing a best-first search. In particular, the algorithm keeps a priority queue of bounded size m, containing promising points whose neighbors haven\u2019t been viewed yet."
   },
   {
     "chunk_id": "files1.txt_chunk_13",
     "source": "files1.txt",
-    "text": "tages: first, they find the representative points closest to them. Then, they scan those partitions (see the example below, wherein a query at the red x).\n\nSpatial partitioning\nSpatial partitioning\nBecause points in a region are stored contiguously, partitioning indexes tend to make longer sequentia"
+    "text": "promising points whose neighbors haven\u2019t been viewed yet. At each step, the algorithm takes the unexpanded point closest to the query and looks at its neighbors, adding any points closer than the current mth closest point onto the priority queue. The search stops when the queue contains only points whose neighbors have been expanded.\n\nGraph-based indexing\nGraph-based indexing\nGraph indexing algorithms"
   },
   {
     "chunk_id": "files1.txt_chunk_14",
     "source": "files1.txt",
-    "text": "partitioning indexes tend to make longer sequential reads than graph indexes. These types of indexes generally have a low storage footprint and are fast for writes. They work well with mediums that have higher bandwidth.\n\nSpatial partitioning indexing has several benefits. First, they have very litt"
+    "text": "indexing\nGraph-based indexing\nGraph indexing algorithms have been shown empirically to have the best algorithmic complexity in terms of computation, in that they compute the distance to the fewest number of points to achieve a certain recall. As a result, they tend to be the fastest algorithms for in-memory vector search. Additionally, they can be engineered to work well on SSDs, so that they make"
   },
   {
     "chunk_id": "files1.txt_chunk_15",
     "source": "files1.txt",
-    "text": "g has several benefits. First, they have very little space overhead. The structures they create for updating data and querying consist of representative points. There are far fewer centroids than actual vectors, reducing the space overhead.\n\nSecond, they can work well with object storage as they ten"
+    "text": "engineered to work well on SSDs, so that they make only a small number of read requests. They are amongst the fastest algorithms for data that lie on SSDs.\n\nOne major difference is that the graph-based algorithm is sequential. It makes hops along the graph, and each hop is a small read. Thus, graphs do well with storage mediums that have low latency such as in-memory. They will not work in object storage"
   },
   {
     "chunk_id": "files1.txt_chunk_16",
     "source": "files1.txt",
-    "text": "they can work well with object storage as they tend to make fewer, longer sequential reads than graph indexes.\n\nHowever, they have lower query throughput than graph-based indexes in memory and on disk.\n\nYou can read this paper to learn more about spatial-partitioning indexing.\n\nGraph-Based Indexing\n"
+    "text": "as in-memory. They will not work in object storage as sequential reads of small items are too slow and object storage has high latency for read requests. Additionally, they have two other cons. First, each data point in a graph holds multiple edges, so they take more space to store than partitioning-based indexes. Second, inserts or deletes touch multiple nodes in the graph, and they tend to have higher"
   },
   {
     "chunk_id": "files1.txt_chunk_17",
     "source": "files1.txt",
-    "text": "tial-partitioning indexing.\n\nGraph-Based Indexing\nAs their name suggests, graph-based indexes organize data as a graph. Reads start at an entry point and work by traversing the graph greedily by performing a best-first search. In particular, the algorithm keeps a priority queue of bounded size m, co"
+    "text": "multiple nodes in the graph, and they tend to have higher costs for updates, especially for storage mediums with latency.\n\nMixed-Index Types\nOne complexity of discussing index types is that indexes can be a mix of types. The diagram below shows one of the most common mixed indexes.\n\nMixed-index types\nMixed-index types\nHere, the vectors (shown as red crosses) are organized into spatial partitions (shown"
   },
   {
     "chunk_id": "files1.txt_chunk_18",
     "source": "files1.txt",
-    "text": "rithm keeps a priority queue of bounded size m, containing promising points whose neighbors haven\u2019t been viewed yet. At each step, the algorithm takes the unexpanded point closest to the query and looks at its neighbors, adding any points closer than the current mth closest point onto the priority q"
+    "text": "crosses) are organized into spatial partitions (shown by the solid black boundaries). The solid black points are the representative points of each partition. In step one of querying spatial partitioning-based indexes, we need to find the closest points amongst the representative points to decide which partitions to examine.\n\nSince this is a nearest neighbor search itself, one can also index the representative"
   },
   {
     "chunk_id": "files1.txt_chunk_19",
     "source": "files1.txt",
-    "text": " the current mth closest point onto the priority queue. The search stops when the queue contains only points whose neighbors have been expanded.\n\nGraph-based indexing\nGraph-based indexing\nGraph indexing algorithms have been shown empirically to have the best algorithmic complexity in terms of comput"
+    "text": "search itself, one can also index the representative points. And as there are fewer of these, it is easier to pay the price to store them in more expensive storage media like memory, and to store neighbors for each point. Thus a common technique is to index the representative points using a graph, taking advantage of the benefits of its higher read throughput, while leaving base data spatially partitioned"
   },
   {
     "chunk_id": "files1.txt_chunk_20",
     "source": "files1.txt",
-    "text": "the best algorithmic complexity in terms of computation, in that they compute the distance to the fewest number of points to achieve a certain recall. As a result, they tend to be the fastest algorithms for in-memory vector search. Additionally, they can be engineered to work well on SSDs, so that t"
+    "text": "throughput, while leaving base data spatially partitioned and stored in contiguous arrays.\n\nIn general, we can categorize mixed indexing types by how their base points are stored. Base points are the vectors stored, as opposed to centroids, which are indexing structures. If every point is in the graph, it is graph-based indexing; if items are stored in files/arrays partitioned by space, it is spatial"
   },
   {
     "chunk_id": "files1.txt_chunk_21",
     "source": "files1.txt",
-    "text": " can be engineered to work well on SSDs, so that they make only a small number of read requests. They are amongst the fastest algorithms for data that lie on SSDs.\n\nOne major difference is that the graph-based algorithm is sequential. It makes hops along the graph, and each hop is a small read. Thus"
+    "text": "in files/arrays partitioned by space, it is spatial partitioning. Thus, we characterize indexes like SPANN, which has a graph on the centroids but uses spatial partitioning, as partitioning-based.\n\nPopular Algorithms and their Analyses\nHierarchical Navigable Small Worlds (HNSW)\nOne of the most popular algorithms is Hierarchical Navigable Small Worlds (HNSW). It is the main indexing algorithm that most"
   },
   {
     "chunk_id": "files1.txt_chunk_22",
     "source": "files1.txt",
-    "text": "long the graph, and each hop is a small read. Thus, graphs do well with storage mediums that have low latency such as in-memory. They will not work in object storage as sequential reads of small items are too slow and object storage has high latency for read requests. Additionally, they have two oth"
+    "text": "(HNSW). It is the main indexing algorithm that most vector search solutions use.\n\nWe previously discussed that HNSW offers great recall at high throughput. Like many graph-based algorithms, HNSW is fast, getting its speed from its layered, hierarchical graph structure. Its nodes and edges connect semantically similar content, making it easy to find the most relevant vectors to a user\u2019s query once within"
   },
   {
     "chunk_id": "files1.txt_chunk_23",
     "source": "files1.txt",
-    "text": "for read requests. Additionally, they have two other cons. First, each data point in a graph holds multiple edges, so they take more space to store than partitioning-based indexes. Second, inserts or deletes touch multiple nodes in the graph, and they tend to have higher costs for updates, especiall"
+    "text": "most relevant vectors to a user\u2019s query once within a target neighborhood, offering good recall.\n\nHowever, HNSW can have high update costs and does not do well with production applications with dynamic data. Additionally, HNSW\u2019s memory consumption grows quickly with data, which increases the cost of storing data in RAM and leads to higher query latencies, timeouts, and a higher bill.\n\nInverted File"
   },
   {
     "chunk_id": "files1.txt_chunk_24",
     "source": "files1.txt",
-    "text": "y tend to have higher costs for updates, especially for storage mediums with latency.\n\nMixed-Index Types\nOne complexity of discussing index types is that indexes can be a mix of types. The diagram below shows one of the most common mixed indexes.\n\nMixed-index types\nMixed-index types\nHere, the vector"
+    "text": "latencies, timeouts, and a higher bill.\n\nInverted File Index (IVF)\nAnother popular index is the Inverted File Index (IVF). It\u2019s easy to use, has high search quality, and has reasonable search speed.\n\nIt\u2019s the most basic version of the spatial-partitioning index and inherits its advantages including little space overhead and the ability to work with object storage as well as disadvantages like lower"
   },
   {
     "chunk_id": "files1.txt_chunk_25",
     "source": "files1.txt",
-    "text": "xed-index types\nMixed-index types\nHere, the vectors (shown as red crosses) are organized into spatial partitions (shown by the solid black boundaries). The solid black points are the representative points of each partition. In step one of querying spatial partitioning-based indexes, we need to find "
+    "text": "object storage as well as disadvantages like lower query throughput compared to graph-based indexing in-memory and on-disk.\n\nDiskANN\nDiskANN is a graph-based index, that despite its name, can be designed for entirely in memory use cases or for data on SSD use cases. It is a leading graph algorithm and shares benefits and drawbacks that most graphs possess. In particular, across both data in memory"
   },
   {
     "chunk_id": "files1.txt_chunk_26",
     "source": "files1.txt",
-    "text": "atial partitioning-based indexes, we need to find the closest points amongst the representative points to decide which partitions to examine.\n\nSince this is a nearest neighbor search itself, one can also index the representative points. And as there are fewer of these, it is easier to pay the price "
+    "text": "possess. In particular, across both data in memory and data on SSD use cases, it has high throughput. However, its high memory cost can make in RAM use cases expensive and on disk it can have high update overheads.\n\nSPANN\nSPANN is a spatial partitioning based index meant for use with data on SSD. It puts a graph index over the set of representative points used for partitioning.\n\nIt\u2019s good for disk-based"
   },
   {
     "chunk_id": "files1.txt_chunk_27",
     "source": "files1.txt",
-    "text": "are fewer of these, it is easier to pay the price to store them in more expensive storage media like memory, and to store neighbors for each point. Thus a common technique is to index the representative points using a graph, taking advantage of the benefits of its higher read throughput, while leavi"
+    "text": "points used for partitioning.\n\nIt\u2019s good for disk-based nearest-neighbor searches, being faster than DiskANN at lower recalls (when both have the same recall) but slower at higher recalls. In general, it can be faster to update than DiskANN. However, updates can change the distribution of data, and more research is needed to see how robust it is in production for updates.\n\nVector indexing algorithms"
   },
   {
     "chunk_id": "files1.txt_chunk_28",
     "source": "files1.txt",
-    "text": "enefits of its higher read throughput, while leaving base data spatially partitioned and stored in contiguous arrays.\n\nIn general, we can categorize mixed indexing types by how their base points are stored. Base points are the vectors stored, as opposed to centroids, which are indexing structures. I"
+    "text": "production for updates.\n\nVector indexing algorithms are complicated. We hope this article helps you understand the information needed when you\u2019re learning and evaluating vector databases. In our upcoming content, we will share more about the Pinecone serverless algorithm. In the meantime, try Pinecone out for free.\n\nWas this article helpful?\n\nYes\nNo\nRecommended for you\nFurther Reading\nNov 4, 2025\nInside"
   },
   {
     "chunk_id": "files1.txt_chunk_29",
     "source": "files1.txt",
-    "text": "sed to centroids, which are indexing structures. If every point is in the graph, it is graph-based indexing; if items are stored in files/arrays partitioned by space, it is spatial partitioning. Thus, we characterize indexes like SPANN, which has a graph on the centroids but uses spatial partitionin"
+    "text": "Recommended for you\nFurther Reading\nNov 4, 2025\nInside Pinecone: Slab Architecture\n11 min read\nJul 15, 2025\nWhat is Context Engineering?\n8 min read\nJun 28, 2025\nChunking Strategies for LLM Applications\n16 min read"
   },
   {
     "chunk_id": "files1.txt_chunk_30",
     "source": "files1.txt",
-    "text": "raph on the centroids but uses spatial partitioning, as partitioning-based.\n\nPopular Algorithms and their Analyses\nHierarchical Navigable Small Worlds (HNSW)\nOne of the most popular algorithms is Hierarchical Navigable Small Worlds (HNSW). It is the main indexing algorithm that most vector search so"
-  },
-  {
-    "chunk_id": "files1.txt_chunk_31",
-    "source": "files1.txt",
-    "text": "main indexing algorithm that most vector search solutions use.\n\nWe previously discussed that HNSW offers great recall at high throughput. Like many graph-based algorithms, HNSW is fast, getting its speed from its layered, hierarchical graph structure. Its nodes and edges connect semantically similar"
-  },
-  {
-    "chunk_id": "files1.txt_chunk_32",
-    "source": "files1.txt",
-    "text": ". Its nodes and edges connect semantically similar content, making it easy to find the most relevant vectors to a user\u2019s query once within a target neighborhood, offering good recall.\n\nHowever, HNSW can have high update costs and does not do well with production applications with dynamic data. Addit"
-  },
-  {
-    "chunk_id": "files1.txt_chunk_33",
-    "source": "files1.txt",
-    "text": "h production applications with dynamic data. Additionally, HNSW\u2019s memory consumption grows quickly with data, which increases the cost of storing data in RAM and leads to higher query latencies, timeouts, and a higher bill.\n\nInverted File Index (IVF)\nAnother popular index is the Inverted File Index "
-  },
-  {
-    "chunk_id": "files1.txt_chunk_34",
-    "source": "files1.txt",
-    "text": "\nAnother popular index is the Inverted File Index (IVF). It\u2019s easy to use, has high search quality, and has reasonable search speed.\n\nIt\u2019s the most basic version of the spatial-partitioning index and inherits its advantages including little space overhead and the ability to work with object storage "
-  },
-  {
-    "chunk_id": "files1.txt_chunk_35",
-    "source": "files1.txt",
-    "text": "rhead and the ability to work with object storage as well as disadvantages like lower query throughput compared to graph-based indexing in-memory and on-disk.\n\nDiskANN\nDiskANN is a graph-based index, that despite its name, can be designed for entirely in memory use cases or for data on SSD use cases"
-  },
-  {
-    "chunk_id": "files1.txt_chunk_36",
-    "source": "files1.txt",
-    "text": "y in memory use cases or for data on SSD use cases. It is a leading graph algorithm and shares benefits and drawbacks that most graphs possess. In particular, across both data in memory and data on SSD use cases, it has high throughput. However, its high memory cost can make in RAM use cases expensi"
-  },
-  {
-    "chunk_id": "files1.txt_chunk_37",
-    "source": "files1.txt",
-    "text": "high memory cost can make in RAM use cases expensive and on disk it can have high update overheads.\n\nSPANN\nSPANN is a spatial partitioning based index meant for use with data on SSD. It puts a graph index over the set of representative points used for partitioning.\n\nIt\u2019s good for disk-based nearest-"
-  },
-  {
-    "chunk_id": "files1.txt_chunk_38",
-    "source": "files1.txt",
-    "text": "r partitioning.\n\nIt\u2019s good for disk-based nearest-neighbor searches, being faster than DiskANN at lower recalls (when both have the same recall) but slower at higher recalls. In general, it can be faster to update than DiskANN. However, updates can change the distribution of data, and more research "
-  },
-  {
-    "chunk_id": "files1.txt_chunk_39",
-    "source": "files1.txt",
-    "text": "hange the distribution of data, and more research is needed to see how robust it is in production for updates.\n\nVector indexing algorithms are complicated. We hope this article helps you understand the information needed when you\u2019re learning and evaluating vector databases. In our upcoming content, "
-  },
-  {
-    "chunk_id": "files1.txt_chunk_40",
-    "source": "files1.txt",
-    "text": "uating vector databases. In our upcoming content, we will share more about the Pinecone serverless algorithm. In the meantime, try Pinecone out for free.\n\nWas this article helpful?\n\nYes\nNo\nRecommended for you\nFurther Reading\nNov 4, 2025\nInside Pinecone: Slab Architecture\n11 min read\nJul 15, 2025\nWha"
-  },
-  {
-    "chunk_id": "files1.txt_chunk_41",
-    "source": "files1.txt",
-    "text": "ne: Slab Architecture\n11 min read\nJul 15, 2025\nWhat is Context Engineering?\n8 min read\nJun 28, 2025\nChunking Strategies for LLM Applications\n16 min read\n\n"
+    "text": "Chunking Strategies for LLM Applications\n16 min read"
   }
 ]
