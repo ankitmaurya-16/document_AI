@@ -53,26 +53,64 @@ const ChatBox = () => {
   ])
 
   try {
-    const formData = new FormData()
-    formData.append("prompt", currentPrompt)
+    if( currentFiles.length === 0 ){
+      const response = await fetch("http://localhost:5001/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ prompt: currentPrompt }),
+      })
 
-    currentFiles.forEach((file) => {
-      formData.append("files", file)
-    })
+      if (!response.ok) throw new Error("Request failed")
 
-    const response = await fetch("http://localhost:5000/api/chat/upload", {
-      method: "POST",
-      body: formData,
-    })
+      const data = await response.json()
 
-    if (!response.ok) throw new Error("Upload failed")
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: data.response },
+      ])
+    }
+    else if (currentFiles.length > 0 && currentPrompt.trim() === "") {
+      const formData = new FormData()
+      currentFiles.forEach((file) => {
+        formData.append("files", file)
+      })
+      
+      const response = await fetch("http://localhost:5001/api/upload", {
+        method: "POST",
+        body: formData,
+      })
 
-    const data = await response.json()
+      if (!response.ok) throw new Error("Upload failed")
 
-    setMessages((prev) => [
-      ...prev,
-      { role: "assistant", content: data.response },
-    ])
+      const data = await response.json()
+
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: "File Upload successful!" },
+      ])
+    }
+    else {  const formData = new FormData()
+      formData.append("prompt", currentPrompt)
+
+      currentFiles.forEach((file) => {
+        formData.append("files", file)
+      })
+      
+      const response = await fetch("http://localhost:5001/api/chat/upload", {
+        method: "POST",
+        body: formData,
+      })
+
+      if (!response.ok) throw new Error("Upload failed")
+
+      const data = await response.json()
+
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: data.response },
+      ])}
   } catch (error) {
     console.error(error)
     setMessages((prev) => [
