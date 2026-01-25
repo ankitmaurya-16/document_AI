@@ -12,7 +12,17 @@ const Message = ({message}) => {
       {message.role==='user'? (
         <div className='flex items-start justify-end my-4 gap-2'>
             <div className='flex flex-col gap-2 p-2 px-4 bg-blue-50 dark:bg-[#070b1c]/30 border border-[#80609F]/30 rounded-md max-w-2xl'>
-                <p className=' text-sm dark:text-white'>{message.content}</p>
+                {message.files && message.files.length > 0 && (
+                    <div className='flex flex-wrap gap-2'>
+                        {message.files.map((fileName, index) => (
+                            <div key={index} className='flex items-center gap-1 bg-gray-200 dark:bg-[#2f198a]/30 px-2 py-1 rounded text-xs'>
+                                <span>📎</span>
+                                <span className='dark:text-white'>{fileName}</span>
+                            </div>
+                        ))}
+                    </div>
+                )}
+                {message.content && <p className=' text-sm dark:text-white'>{message.content}</p>}
                 <span className='text-xs text-0gray-400 dark:text-gray-400'>{moment(message.timestamp).fromNow()}</span>
             </div>
             <img src={assets.user_icon} alt="" className='w-8 rounded-full' />
