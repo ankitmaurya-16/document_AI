@@ -12,7 +12,7 @@ import './assets/prism.css'
 import { useAppContext } from './context/AppContext'
   const App = () => {
 
-  const [isMenuOpen, setIsMenuOpen]=useState(false)
+  const [isMenuOpen, setIsMenuOpen]=useState(() => window.innerWidth >= 768)
   const {pathname} = useLocation()
   const {user} = useAppContext()
   if (pathname === '/loading') {
@@ -20,7 +20,7 @@ import { useAppContext } from './context/AppContext'
   }
   return (
     <>
-    {!isMenuOpen && <img src={assets.menu_icon} className='absolute top-3 left-3 w-8 h-8 cursor-pointer md:hidden dark:invert' onClick={()=>setIsMenuOpen(true)}/>}
+    {!isMenuOpen && <img src={assets.menu_icon} className='absolute top-3 left-3 w-8 h-8 cursor-pointer dark:invert z-20' onClick={()=>setIsMenuOpen(true)}/>}
       {user?(
         <div className='dark:bg-gradient-to-b from-[#242124] to-[#000000] dark:text-white'>
         <div className='flex h-screen w-screen'>

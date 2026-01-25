@@ -139,9 +139,9 @@ const ChatBox = () => {
   }, [messages])
 
   return (
-    <div className="flex-1 flex flex-col justify-between m-5 md:m-10 xl:mx-30 max-md:mt-14 2xl:pr-40">
+    <div className="flex-1 flex flex-col justify-between m-5 md:m-10 xl:mx-30 max-md:mt-14">
       {/* Chat messages */}
-      <div ref={containerRef} className="flex-1 mb-5 overflow-y-scroll">
+      <div ref={containerRef} className="flex-1 mb-5 overflow-y-scroll max-w-2xl mx-auto w-full">
         {messages.length === 0 && (
           <div className="h-full flex flex-col items-center justify-center gap-2 text-primary">
             <img
