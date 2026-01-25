@@ -44,7 +44,7 @@ const Sidebar = ({isMenuOpen, setIsMenuOpen}) => {
                     )
                 })
                 .map((chat) => (
-                    <div onClick ={()=>{navigate('/'); setSelectedChat(chat);setIsMenuOpen(false)}} key={chat._id} className='p-2 px-4 dark:bg-[#2f198a]/10 border border-gray-300 dark:border-[#80609F]/15
+                    <div onClick ={()=>{navigate('/'); setSelectedChat(chat); if(window.innerWidth < 768) setIsMenuOpen(false)}} key={chat._id} className='p-2 px-4 dark:bg-[#2f198a]/10 border border-gray-300 dark:border-[#80609F]/15
                     rounded-md cursor-pointer
                     flex justify-between group/chat'>
                         <div>   
@@ -77,7 +77,7 @@ const Sidebar = ({isMenuOpen, setIsMenuOpen}) => {
       </div> */}
 
         {/** Credit Purchases Option */}
-      <div onClick={()=>{navigate('/credits');setIsMenuOpen(false)}} className='flex items-center gap-2 p-3 mt-4 border border-gray-300
+      <div onClick={()=>{navigate('/credits'); if(window.innerWidth < 768) setIsMenuOpen(false)}} className='flex items-center gap-2 p-3 mt-4 border border-gray-300
       dark:border-white/15 rounded-md cursor-pointer hover:scale-103 transition-all'>
         <img
         src={assets.diamond_icon}
