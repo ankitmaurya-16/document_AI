@@ -22,7 +22,7 @@ import { useAppContext } from './context/AppContext'
     <>
     {!isMenuOpen && <img src={assets.menu_icon} className='absolute top-3 left-3 w-8 h-8 cursor-pointer dark:invert z-20' onClick={()=>setIsMenuOpen(true)}/>}
       {user?(
-        <div className='dark:bg-gradient-to-b from-[#242124] to-[#000000] dark:text-white'>
+        <div className='dark:bg-gradient-to-b from-[#171717] to-[#0a0a0a] dark:text-white'>
         <div className='flex h-screen w-screen'>
           <Sidebar isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen}/>
           <Routes>

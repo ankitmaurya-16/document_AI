@@ -10,8 +10,8 @@ const Sidebar = ({isMenuOpen, setIsMenuOpen}) => {
   return (
     <div
         className={`flex flex-col h-screen min-w-72 p-5
-        dark:bg-gradient-to-b from-[#242124]/30 to-[#000000]/30
-        border-r border-[#80609F]/30 backdrop-blur-3xl
+        dark:bg-gradient-to-b from-[#1a1a1a]/60 to-[#0d0d0d]/60
+        border-r border-neutral-700/40 backdrop-blur-3xl
         transition-all duration-500
         max-md:absolute left-0 z-10
         ${!isMenuOpen && 'max-md:-translate-x-full md:hidden'}`}
@@ -44,8 +44,8 @@ const Sidebar = ({isMenuOpen, setIsMenuOpen}) => {
                     )
                 })
                 .map((chat) => (
-                    <div onClick ={()=>{navigate('/'); setSelectedChat(chat); if(window.innerWidth < 768) setIsMenuOpen(false)}} key={chat._id} className='p-2 px-4 dark:bg-[#2f198a]/10 border border-gray-300 dark:border-[#80609F]/15
-                    rounded-md cursor-pointer
+                    <div onClick ={()=>{navigate('/'); setSelectedChat(chat); if(window.innerWidth < 768) setIsMenuOpen(false)}} key={chat._id} className='p-2 px-4 dark:bg-neutral-800/30 border border-gray-300 dark:border-neutral-600/30
+                    rounded-md cursor-pointer hover:dark:bg-neutral-700/30 transition-colors
                     flex justify-between group/chat'>
                         <div>   
                         <p className='truncate w-full'>
@@ -53,7 +53,7 @@ const Sidebar = ({isMenuOpen, setIsMenuOpen}) => {
                                 chat.messages.length>0?chat.messages[0].content.slice(0,32):chat.name
                             }
                         </p>
-                        <p className='text-xs text-gray-500 dark:text-[#B1A6C0]'>
+                        <p className='text-xs text-gray-500 dark:text-neutral-400'>
                             {moment(chat.updatedAt).fromNow()}
                         </p>
                         </div> 
@@ -109,9 +109,9 @@ const Sidebar = ({isMenuOpen, setIsMenuOpen}) => {
       dark:border-white/15 rounded-md cursor-pointer group/user'>
         <img
         src={assets.user_icon}
-        className="w-7 rounded-full"
+        className="w-7 rounded-full ring-2 ring-[#2f198a] dark:ring-[#3D81F6]"
         />
-        <p className='flex-1 text-sm dark:text-primary truncate'>{user?user.name:'Login your account'}</p>
+        <p className='flex-1 text-sm text-gray-800 dark:text-white truncate'>{user?user.name:'Login your account'}</p>
         {user && <img src={assets.logout_icon} className='h-5 cursor-pointer max-md:block hidden not-dark:invert group-hover/user:block'/>}
       </div>
 

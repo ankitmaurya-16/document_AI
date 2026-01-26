@@ -205,7 +205,7 @@ const ChatBox = () => {
       {/* Prompt input box */}
       <form
         onSubmit={onSubmit}
-        className="bg-white/20 dark:bg-black/30 border border-primary dark:border-[#80609F]/30 rounded-full w-full max-w-2xl p-3 pl-4 mx-auto flex gap-4 items-center"
+        className="bg-white/20 dark:bg-neutral-800/40 border border-primary dark:border-neutral-600/40 rounded-full w-full max-w-2xl p-3 pl-4 mx-auto flex gap-4 items-center"
       >
         {/* Hidden file input */}
         <input
@@ -256,7 +256,7 @@ const ChatBox = () => {
         >
           <img
             src={loading ? assets.stop_icon : assets.send_icon}
-            className="w-8 cursor-pointer"
+            className="w-8 cursor-pointer dark:brightness-110"
             alt="send"
           />
         </button>
