@@ -1,5 +1,5 @@
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, List, Dict
 from pymongo import MongoClient
 from bson import ObjectId
@@ -131,7 +131,7 @@ def update_chat_name(chat_id: str, name: str) -> bool:
 
 def add_message_to_chat(chat_id: str, message: dict) -> bool:
     db = get_database()
-    message["timestamp"] = datetime.utcnow().timestamp() * 1000 
+    message["timestamp"] = datetime.now(timezone.utc).timestamp() * 1000 
     result = db.chats.update_one(
         {"_id": ObjectId(chat_id)},
         {
@@ -146,7 +146,7 @@ def add_messages_to_chat(chat_id: str, messages: List[dict]) -> bool:
     db = get_database()
     for msg in messages:
         if "timestamp" not in msg:
-            msg["timestamp"] = datetime.utcnow().timestamp() * 1000
+            msg["timestamp"] = datetime.now(timezone.utc).timestamp() * 1000
     
     result = db.chats.update_one(
         {"_id": ObjectId(chat_id)},
