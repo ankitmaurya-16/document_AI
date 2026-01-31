@@ -36,20 +36,42 @@ def close_connection():
 
 #User Operations
 
-def create_user(name: str, email: str, hashed_password: str) -> dict:
+def create_user(name: str, email: str, hashed_password: str, provider: str = 'email', provider_id: str = None) -> dict:
     db = get_database()
     user = {
         "name": name,
         "email": email,
-        "password": hashed_password,
-        "credits": 100, 
+        "credits": 100,
+        "provider": provider,
         "createdAt": datetime.utcnow(),
         "updatedAt": datetime.utcnow()
     }
+    
+    # Only add password for email users
+    if hashed_password:
+        user["password"] = hashed_password
+    
+    # Add provider ID for OAuth users
+    if provider_id:
+        user["providerId"] = provider_id
+    
     result = db.users.insert_one(user)
     user["_id"] = str(result.inserted_id)
-    del user["password"] 
+    if "password" in user:
+        del user["password"] 
     return user
+
+
+def update_user_provider(user_id: str, provider: str, provider_id: str = None) -> bool:
+    db = get_database()
+    update_data = {"provider": provider, "updatedAt": datetime.utcnow()}
+    if provider_id:
+        update_data["providerId"] = provider_id
+    result = db.users.update_one(
+        {"_id": ObjectId(user_id)},
+        {"$set": update_data}
+    )
+    return result.modified_count > 0
 
 
 def get_user_by_email(email: str) -> Optional[dict]:
@@ -66,7 +88,8 @@ def get_user_by_id(user_id: str) -> Optional[dict]:
         user = db.users.find_one({"_id": ObjectId(user_id)})
         if user:
             user["_id"] = str(user["_id"])
-            del user["password"] 
+            if "password" in user:
+                del user["password"] 
         return user
     except:
         return None

@@ -17,6 +17,10 @@ try:
     import pandas as pd
 except ImportError:
     pd = None
+try:
+    from pptx import Presentation
+except ImportError:
+    Presentation = None
 from config import (
     DOCS_DIR,
     INDEX_DIR,
@@ -75,6 +79,17 @@ def extract_text_from_file(file_path: str) -> str:
             raise ImportError("pandas is required for Excel files. Install with: pip install pandas openpyxl")
         df = pd.read_excel(file_path)
         return df.to_string()
+    
+    elif ext in [".ppt", ".pptx"]:
+        if Presentation is None:
+            raise ImportError("python-pptx is required for PowerPoint files. Install with: pip install python-pptx")
+        prs = Presentation(file_path)
+        text = ""
+        for slide in prs.slides:
+            for shape in slide.shapes:
+                if hasattr(shape, "text"):
+                    text += shape.text + "\n"
+        return text
     
     else:
         raise ValueError(f"Unsupported file format: {ext}")

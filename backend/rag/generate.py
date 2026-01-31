@@ -27,7 +27,7 @@ def generate_answer(question:str,context_chunks:List[Dict],model:str="gpt-4o-min
     print(f"DEBUG generate_answer(): Prompt length: {len(prompt)} chars")
     print(f"DEBUG generate_answer(): Context chunks: {len(context_chunks)}")
     print(f"DEBUG generate_answer(): First chunk preview: {context_chunks[0]['text'][:100]}..." if context_chunks else "No chunks")
-    
+    answer=""
     try:
         response=client.chat.completions.create(
             model=model,
@@ -40,4 +40,5 @@ def generate_answer(question:str,context_chunks:List[Dict],model:str="gpt-4o-min
         return answer
     except Exception as e:
         print(f"ERROR generate_answer(): OpenAI API error: {e}")
-        raise
+        answer = "AI response temporarily unavailable (quota exceeded)."
+        return answer
