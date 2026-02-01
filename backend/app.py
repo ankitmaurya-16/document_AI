@@ -4,6 +4,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
+import requests as http_requests
 
 # Import RAG functions
 import sys
@@ -14,11 +15,13 @@ from rag.retrieve import retrieve_top_chunks
 from rag.generate import generate_answer
 from rag.auth import (
     register_user, login_user, verify_user_token, 
-    require_auth, get_token_from_header, decode_token
+    require_auth, get_token_from_header, decode_token, generate_token
 )
 from rag.database import (
     get_user_chats, create_chat, get_chat_by_id, 
-    add_messages_to_chat, delete_chat, update_chat_name
+    add_messages_to_chat, delete_chat, update_chat_name,
+    get_user_by_email, create_user, update_user_provider,
+    update_user_credits, get_user_by_id
 )
 
 # Load environment variables
@@ -30,7 +33,7 @@ CORS(app)
 
 # Configuration
 UPLOAD_FOLDER = tempfile.mkdtemp()
-ALLOWED_EXTENSIONS = {'txt', 'pdf', 'doc', 'docx', 'csv', 'xlsx', 'xls'}
+ALLOWED_EXTENSIONS = {'txt', 'pdf', 'doc', 'docx', 'csv', 'xlsx', 'xls', 'ppt', 'pptx'}
 MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB max file size
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -117,6 +120,72 @@ def verify():
     except Exception as e:
         print(f"Error in verify: {e}")
         return jsonify({'error': 'Verification failed', 'message': str(e)}), 500
+
+
+@app.route('/api/auth/google', methods=['POST'])
+def google_auth():
+    """Handle Google OAuth login/signup"""
+    try:
+        data = request.get_json()
+        access_token = data.get('access_token')
+        
+        if not access_token:
+            return jsonify({'error': 'Access token is required'}), 400
+        
+        # Verify token with Google and get user info
+        google_user_info_url = 'https://www.googleapis.com/oauth2/v3/userinfo'
+        headers = {'Authorization': f'Bearer {access_token}'}
+        
+        response = http_requests.get(google_user_info_url, headers=headers)
+        
+        if response.status_code != 200:
+            return jsonify({'error': 'Invalid Google token'}), 401
+        
+        google_user = response.json()
+        email = google_user.get('email')
+        name = google_user.get('name', email.split('@')[0])
+        google_id = google_user.get('sub')
+        
+        if not email:
+            return jsonify({'error': 'Could not get email from Google'}), 400
+        
+        # Check if user exists
+        existing_user = get_user_by_email(email)
+        
+        if existing_user:
+            # User exists - update provider if needed and login
+            if existing_user.get('provider') != 'google':
+                update_user_provider(existing_user['_id'], 'google', google_id)
+            
+            user_id = existing_user['_id']
+            user_data = {
+                '_id': user_id,
+                'name': existing_user['name'],
+                'email': existing_user['email'],
+                'credits': existing_user.get('credits', 100)
+            }
+        else:
+            # Create new user (no password for OAuth users)
+            new_user = create_user(name, email, None, provider='google', provider_id=google_id)
+            user_id = new_user['_id']
+            user_data = {
+                '_id': user_id,
+                'name': new_user['name'],
+                'email': new_user['email'],
+                'credits': new_user.get('credits', 100)
+            }
+        
+        # Generate JWT token
+        token = generate_token(user_id, email)
+        
+        return jsonify({
+            'token': token,
+            'user': user_data
+        }), 200
+        
+    except Exception as e:
+        print(f"Error in google_auth: {e}")
+        return jsonify({'error': 'Google authentication failed', 'message': str(e)}), 500
 
 
 # CHAT CRUD ENDPOINTS 
@@ -219,6 +288,15 @@ def chat_upload():
             if payload:
                 user_id = payload.get('user_id')
         
+        # Check credits for authenticated users
+        if user_id:
+            user = get_user_by_id(user_id)
+            if user and user.get('credits', 0) <= 0:
+                return jsonify({
+                    'error': 'Credits exhausted. Please purchase more credits to continue using DocAI.',
+                    'credits_exhausted': True
+                }), 402
+        
         prompt = request.form.get('prompt')
         chat_id = request.form.get('chatId')
         
@@ -279,11 +357,9 @@ def chat_upload():
                 print(f"Error deleting file {filepath}: {e}")
 
         if user_id:
-            from rag.database import get_user_by_id
-            
             if not chat_id:
-                user = get_user_by_id(user_id)
-                user_name = user.get('name', 'User') if user else 'User'
+                user_obj = get_user_by_id(user_id)
+                user_name = user_obj.get('name', 'User') if user_obj else 'User'
                 # Use first few words of prompt as chat name
                 chat_name = prompt[:30] + "..." if len(prompt) > 30 else prompt
                 new_chat = create_chat(user_id, user_name, chat_name)
@@ -307,6 +383,12 @@ def chat_upload():
             ]
             add_messages_to_chat(chat_id, messages)
             print(f"Messages saved to chat {chat_id}")
+            
+            # Deduct 1 credit after successful query
+            current_credits = user.get('credits', 0) if user else 0
+            if current_credits > 0:
+                update_user_credits(user_id, current_credits - 1)
+                print(f"Credit deducted. Remaining: {current_credits - 1}")
 
         return jsonify({
             'response': answer,
@@ -381,6 +463,15 @@ def chat():
             if payload:
                 user_id = payload.get('user_id')
         
+        # Check credits for authenticated users
+        if user_id:
+            user = get_user_by_id(user_id)
+            if user and user.get('credits', 0) <= 0:
+                return jsonify({
+                    'error': 'Credits exhausted. Please purchase more credits to continue using DocAI.',
+                    'credits_exhausted': True
+                }), 402
+        
         data = request.get_json()
         prompt = data.get('prompt')
         chat_id = data.get('chatId')
@@ -401,11 +492,9 @@ def chat():
 
         # Save messages to database if user is authenticated
         if user_id:
-            from rag.database import get_user_by_id
-            
             if not chat_id:
-                user = get_user_by_id(user_id)
-                user_name = user.get('name', 'User') if user else 'User'
+                user_obj = get_user_by_id(user_id)
+                user_name = user_obj.get('name', 'User') if user_obj else 'User'
                 # Use first few words of prompt as chat name
                 chat_name = prompt[:30] + "..." if len(prompt) > 30 else prompt
                 new_chat = create_chat(user_id, user_name, chat_name)
@@ -428,6 +517,12 @@ def chat():
             ]
             add_messages_to_chat(chat_id, messages)
             print(f"Messages saved to chat {chat_id}")
+            
+            # Deduct 1 credit after successful query
+            current_credits = user.get('credits', 0) if user else 0
+            if current_credits > 0:
+                update_user_credits(user_id, current_credits - 1)
+                print(f"Credit deducted. Remaining: {current_credits - 1}")
 
         return jsonify({
             'response': answer,
