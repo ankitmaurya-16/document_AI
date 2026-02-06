@@ -18,17 +18,17 @@ const Credits = () => {
       <h2 className='text-3xl font-semibold text-center mb-10 xl:mt-30 text-gray-800 dark:text-white'>Credit Plans</h2>
       <div className="flex flex-wrap justify-center gap-8">
         {plans.map((plan)=>(
-          <div key={plan._id} className={`border border-gray-200 dark:border-neutral-700 rounded-lg shadow hover:shadow-lg transition-shadow p-6 min-w-[300px] flex flex-col ${plan._id==="pro"?"bg-gray-50 dark:bg-neutral-900":"bg-white dark:bg-neutral-800/30"}`}>
+          <div key={plan._id} className={`border border-gray-200 dark:border-neutral-700 rounded-lg shadow hover:shadow-lg transition-shadow p-6 min-w-[300px] flex flex-col ${plan._id==="pro"?"bg-blue-50 dark:bg-black/80":"bg-white dark:bg-black/50"}`}>
             <div className="flex-1">
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">{plan.name}</h3>
-              <p className="text-2xl font-bold text-[#2f198a] dark:text-[#3D81F6] mb-4">${plan.price}
+              <p className="text-2xl font-bold text-[#3D81F6] mb-4">${plan.price}
                 <span className="text-base font-normal text-gray-600 dark:text-neutral-400">{' '}/ {plan.credits} credits</span>
               </p>
               <ul>
                 {
                   plan.features.map((feature, index)=>(
                     <li key={index} className="flex items-center mb-2">
-                      <span className="text-[#2f198a] dark:text-[#3D81F6] mr-2">✔</span>
+                      <span className="text-[#3D81F6] mr-2">✔</span>
                       <span className="text-gray-700 dark:text-white">{feature}</span>
                     </li>
                   ))

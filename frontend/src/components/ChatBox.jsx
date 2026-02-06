@@ -7,12 +7,13 @@ const ChatBox = () => {
   const containerRef = useRef(null)
   const fileInputRef = useRef(null)
 
-  const { selectedChat } = useAppContext()
+  const { selectedChat, setSelectedChat, token, API_URL, createNewChat, fetchUserChats, user, refreshUser } = useAppContext()
 
   const [messages, setMessages] = useState([])
   const [loading, setLoading] = useState(false)
   const [prompt, setPrompt] = useState("")
   const [selectedFiles, setSelectedFiles] = useState([])
+  const [currentChatId, setCurrentChatId] = useState(null)
 
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files || [])
@@ -43,79 +44,132 @@ const ChatBox = () => {
 
   setLoading(true)
 
-  setMessages((prev) => [
-    ...prev,
-    {
-      role: "user",
-      content: currentPrompt,
-      files: currentFiles.map((f) => f.name),
-    },
-  ])
+  // Add user message to UI immediately
+  const userMessage = {
+    role: "user",
+    content: currentPrompt,
+    files: currentFiles.map((f) => f.name),
+    timestamp: Date.now()
+  }
+
+  setMessages((prev) => [...prev, userMessage])
 
   try {
-    if( currentFiles.length === 0 ){
-      const response = await fetch("http://localhost:5001/api/chat", {
+    // Build headers with auth token if available
+    const headers = {}
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`
+    }
+
+    if (currentFiles.length === 0) {
+      // Chat without files
+      const response = await fetch(`${API_URL}/api/chat`, {
         method: "POST",
         headers: {
+          ...headers,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ prompt: currentPrompt }),
+        body: JSON.stringify({ 
+          prompt: currentPrompt,
+          chatId: currentChatId 
+        }),
       })
-
-      if (!response.ok) throw new Error("Request failed")
 
       const data = await response.json()
 
+      if (!response.ok) {
+        if (data.credits_exhausted) {
+          setMessages((prev) => [
+            ...prev,
+            { role: "assistant", content: "⚠️ Credits exhausted! Please purchase more credits to continue using DocAI.", timestamp: Date.now() },
+          ])
+          setLoading(false)
+          return
+        }
+        throw new Error(data.error || "Request failed")
+      }
+
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: data.response },
+        { role: "assistant", content: data.response, timestamp: Date.now() },
       ])
+
+      // Refresh chats and user credits if authenticated
+      if (token && data.chatId) {
+        setCurrentChatId(data.chatId)
+        fetchUserChats()
+        refreshUser()
+      }
     }
     else if (currentFiles.length > 0 && currentPrompt.trim() === "") {
+      // Upload files only
       const formData = new FormData()
       currentFiles.forEach((file) => {
         formData.append("files", file)
       })
       
-      const response = await fetch("http://localhost:5001/api/upload", {
+      const response = await fetch(`${API_URL}/api/upload`, {
         method: "POST",
+        headers,
         body: formData,
       })
 
       if (!response.ok) throw new Error("Upload failed")
 
-      const data = await response.json()
-
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: "File Upload successful!" },
+        { role: "assistant", content: "File Upload successful!", timestamp: Date.now() },
       ])
     }
-    else {  const formData = new FormData()
+    else {
+      // Chat with files
+      const formData = new FormData()
       formData.append("prompt", currentPrompt)
+      if (currentChatId) {
+        formData.append("chatId", currentChatId)
+      }
 
       currentFiles.forEach((file) => {
         formData.append("files", file)
       })
       
-      const response = await fetch("http://localhost:5001/api/chat/upload", {
+      const response = await fetch(`${API_URL}/api/chat/upload`, {
         method: "POST",
+        headers,
         body: formData,
       })
 
-      if (!response.ok) throw new Error("Upload failed")
-
       const data = await response.json()
+
+      if (!response.ok) {
+        if (data.credits_exhausted) {
+          setMessages((prev) => [
+            ...prev,
+            { role: "assistant", content: "⚠️ Credits exhausted! Please purchase more credits to continue using DocAI.", timestamp: Date.now() },
+          ])
+          setLoading(false)
+          return
+        }
+        throw new Error(data.error || "Upload failed")
+      }
 
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: data.response },
-      ])}
+        { role: "assistant", content: data.response, timestamp: Date.now() },
+      ])
+
+      // Update current chat ID and refresh chats/credits if authenticated
+      if (token && data.chatId) {
+        setCurrentChatId(data.chatId)
+        fetchUserChats()
+        refreshUser()
+      }
+    }
   } catch (error) {
     console.error(error)
     setMessages((prev) => [
       ...prev,
-      { role: "assistant", content: "Something went wrong. Try again." },
+      { role: "assistant", content: "Something went wrong. Try again.", timestamp: Date.now() },
     ])
   } finally {
     setLoading(false)
@@ -125,7 +179,11 @@ const ChatBox = () => {
 
   useEffect(() => {
     if (selectedChat) {
-      setMessages(selectedChat.messages)
+      setMessages(selectedChat.messages || [])
+      setCurrentChatId(selectedChat._id)
+    } else {
+      setMessages([])
+      setCurrentChatId(null)
     }
   }, [selectedChat])
 
@@ -176,7 +234,7 @@ const ChatBox = () => {
             {selectedFiles.map((file, index) => (
               <div
                 key={index}
-                className="inline-flex items-center gap-2 bg-gray-100 dark:bg-gray-800 rounded-lg px-3 py-2 text-sm"
+                className="inline-flex items-center gap-2 bg-gray-100 dark:bg-black/60 rounded-lg px-3 py-2 text-sm"
               >
                 <span>📎 {file.name}</span>
                 <button
@@ -193,7 +251,7 @@ const ChatBox = () => {
             <button
               type="button"
               onClick={clearAllFiles}
-              className="text-xs px-3 py-2 rounded-lg bg-gray-200 dark:bg-gray-700 hover:opacity-80"
+              className="text-xs px-3 py-2 rounded-lg bg-gray-200 dark:bg-black/70 hover:opacity-80"
               title="Remove all files"
             >
               Clear all
@@ -205,7 +263,7 @@ const ChatBox = () => {
       {/* Prompt input box */}
       <form
         onSubmit={onSubmit}
-        className="bg-white/20 dark:bg-neutral-800/40 border border-primary dark:border-neutral-600/40 rounded-full w-full max-w-2xl p-3 pl-4 mx-auto flex gap-4 items-center"
+        className="bg-white/20 dark:bg-black/50 border border-primary dark:border-white/20 rounded-full w-full max-w-2xl p-3 pl-4 mx-auto flex gap-4 items-center"
       >
         {/* Hidden file input */}
         <input
@@ -221,7 +279,7 @@ const ChatBox = () => {
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
-          className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors"
+          className="p-2 hover:bg-gray-200 dark:hover:bg-black/60 rounded-full transition-colors"
           title="Upload files"
           disabled={loading}
         >
@@ -256,7 +314,7 @@ const ChatBox = () => {
         >
           <img
             src={loading ? assets.stop_icon : assets.send_icon}
-            className="w-8 cursor-pointer dark:brightness-110"
+            className="w-8 cursor-pointer"
             alt="send"
           />
         </button>

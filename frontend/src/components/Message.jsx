@@ -10,7 +10,7 @@ const Message = ({message}) => {
   return (
     <div>
       {message.role==='user'? (
-        <div className='flex items-start justify-end my-4 gap-2'>
+        <div className='flex items-start justify-end my-4 gap-2 pr-1'>
             <div className='flex flex-col gap-2 p-2 px-4 bg-blue-50 dark:bg-neutral-800/40 border border-neutral-300 dark:border-neutral-600/40 rounded-md max-w-2xl'>
                 {message.files && message.files.length > 0 && (
                     <div className='flex flex-wrap gap-2'>
@@ -25,7 +25,7 @@ const Message = ({message}) => {
                 {message.content && <p className=' text-sm dark:text-white'>{message.content}</p>}
                 <span className='text-xs text-0gray-400 dark:text-gray-400'>{moment(message.timestamp).fromNow()}</span>
             </div>
-            <img src={assets.user_icon} alt="" className='w-8 rounded-full ring-2 ring-[#2f198a] dark:ring-[#3D81F6]/60' />
+            <img src={assets.user_icon} alt="" className='w-8 h-8 min-w-8 rounded-full ring-2 ring-[#2f198a] dark:ring-[#3D81F6]/60' />
         </div>
       ):(
         <div className='inline-flex flex-col gap-2 p-2 px-4 max-w-2xl bg-gray-50 dark:bg-neutral-900/50 border border-neutral-200 dark:border-neutral-700/40 rounded-md my-4'>

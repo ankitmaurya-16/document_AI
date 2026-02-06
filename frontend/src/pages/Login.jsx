@@ -1,11 +1,70 @@
 import React, { useState } from "react"
+import { useAppContext } from "../context/AppContext"
+import { useGoogleLogin } from "@react-oauth/google"
 
 const Login = () => {
   const [isSignup, setIsSignup] = useState(false)
+  const [name, setName] = useState("")
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
+  const [error, setError] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+  
+  const { login, register, navigate, googleLogin } = useAppContext()
 
-  const handleSubmit = (e) => {
+  const handleGoogleLogin = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      setError("")
+      setIsLoading(true)
+      const result = await googleLogin(tokenResponse.access_token)
+      if (result.success) {
+        navigate('/')
+      } else {
+        setError(result.error || 'Google login failed')
+      }
+      setIsLoading(false)
+    },
+    onError: (error) => {
+      console.error('Google login error:', error)
+      setError('Google login failed. Please try again.')
+    }
+  })
+
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    console.log(isSignup ? "Signing up..." : "Logging in...")
+    setError("")
+    setIsLoading(true)
+
+    if (isSignup) {
+      // Validation
+      if (password !== confirmPassword) {
+        setError("Passwords do not match")
+        setIsLoading(false)
+        return
+      }
+      if (password.length < 6) {
+        setError("Password must be at least 6 characters")
+        setIsLoading(false)
+        return
+      }
+      
+      const result = await register(name, email, password)
+      if (result.success) {
+        navigate('/')
+      } else {
+        setError(result.error)
+      }
+    } else {
+      const result = await login(email, password)
+      if (result.success) {
+        navigate('/')
+      } else {
+        setError(result.error)
+      }
+    }
+    
+    setIsLoading(false)
   }
 
   return (
@@ -27,7 +86,9 @@ const Login = () => {
           {/* Google button */}
           <button
             type="button"
-            className="w-full mt-8 bg-gray-500/10 flex items-center justify-center h-12 rounded-full"
+            onClick={handleGoogleLogin}
+            disabled={isLoading}
+            className="w-full mt-8 bg-gray-500/10 flex items-center justify-center h-12 rounded-full hover:bg-gray-500/20 transition-colors disabled:opacity-50"
           >
             <img
               src="https://raw.githubusercontent.com/prebuiltui/prebuiltui/main/assets/login/googleLogo.svg"
@@ -62,6 +123,8 @@ const Login = () => {
               <input
                 type="text"
                 placeholder="Full Name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
                 className="bg-transparent text-gray-500/80 placeholder-gray-500/80 outline-none text-sm w-full h-full"
                 required
               />
@@ -91,6 +154,8 @@ const Login = () => {
             <input
               type="email"
               placeholder="Email id"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="bg-transparent text-gray-500/80 placeholder-gray-500/80 outline-none text-sm w-full h-full"
               required
             />
@@ -113,6 +178,8 @@ const Login = () => {
             <input
               type="password"
               placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               className="bg-transparent text-gray-500/80 placeholder-gray-500/80 outline-none text-sm w-full h-full"
               required
             />
@@ -136,10 +203,17 @@ const Login = () => {
               <input
                 type="password"
                 placeholder="Confirm Password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
                 className="bg-transparent text-gray-500/80 placeholder-gray-500/80 outline-none text-sm w-full h-full"
                 required
               />
             </div>
+          )}
+
+          {/* Error message */}
+          {error && (
+            <p className="text-red-500 text-sm mt-4">{error}</p>
           )}
 
           {/* Remember + Forgot */}
@@ -160,9 +234,10 @@ const Login = () => {
           {/* Submit */}
           <button
             type="submit"
-            className="mt-8 w-full h-11 rounded-full text-white bg-blue-800 hover:opacity-90 transition-opacity"
+            disabled={isLoading}
+            className="mt-8 w-full h-11 rounded-full text-white bg-blue-800 hover:opacity-90 transition-opacity disabled:opacity-50"
           >
-            {isSignup ? "Sign up" : "Login"}
+            {isLoading ? "Please wait..." : (isSignup ? "Sign up" : "Login")}
           </button>
 
           {/* Switch mode */}
