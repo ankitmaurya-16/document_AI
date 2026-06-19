@@ -1,44 +1,128 @@
-from typing import List, Dict
-from openai import OpenAI
-from dotenv import load_dotenv
+"""LLM generation — blocking and streaming variants."""
+from __future__ import annotations
+
 import os
+from typing import Dict, Generator, List
+
+from dotenv import load_dotenv
+from openai import OpenAI
+
+from logging_config import get_logger
+from resilience import with_retry
+
+try:
+    from openai import APIConnectionError, APIError, APITimeoutError, RateLimitError
+    _OPENAI_RETRY_TYPES = (APIError, APIConnectionError, APITimeoutError, RateLimitError)
+except ImportError:  # very old openai SDK or stub in tests
+    _OPENAI_RETRY_TYPES = (Exception,)
+
+_OPENAI_TIMEOUT_S = 30.0
+
 load_dotenv()
-client=OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-def build_prompt(question:str,context_chunks:List[Dict])->str:
-    context_text="\n\n".join(f"[Source:{chunk['source']}]\n{chunk['text']}" for chunk in context_chunks)
-    prompt = f"""
-            You are a careful assistant.
-            Answer the question using ONLY the context below.
-            You may use multiple context chunks.
-            Cite sources like: [Source: filename]
-            If the answer is not contained in the context, say:
-            "The document don't have enough information to answer this question."
 
-            Context:
-            {context_text}
+log = get_logger("generate")
 
-            Question:
-            {question}
-            """.strip()
-    return prompt
+_client: OpenAI | None = None
 
-def generate_answer(question:str,context_chunks:List[Dict],model:str="gpt-4o-mini", temperature:float=0.0)->str:
-    prompt=build_prompt(question,context_chunks)
-    print(f"DEBUG generate_answer(): Prompt length: {len(prompt)} chars")
-    print(f"DEBUG generate_answer(): Context chunks: {len(context_chunks)}")
-    print(f"DEBUG generate_answer(): First chunk preview: {context_chunks[0]['text'][:100]}..." if context_chunks else "No chunks")
-    answer=""
+
+def _openai() -> OpenAI:
+    global _client
+    if _client is None:
+        _client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+    return _client
+
+
+SYSTEM_PROMPT = (
+    "You are a careful assistant. Answer the user's question using ONLY the "
+    "provided context. You may use multiple context chunks. Cite sources like: "
+    "[Source: filename]. If the answer is not contained in the context, say: "
+    '"The documents don\'t have enough information to answer this question." '
+    "When the user refers to earlier parts of this conversation (e.g. \"what did I just ask?\"), "
+    "use the prior turns below in addition to the context."
+)
+
+
+def _context_block(context_chunks: List[Dict]) -> str:
+    return "\n\n".join(
+        f"[Source:{chunk['source']}]\n{chunk['text']}" for chunk in context_chunks
+    )
+
+
+def build_messages(
+    question: str,
+    context_chunks: List[Dict],
+    history: List[Dict] | None = None,
+) -> List[Dict]:
+    """Build the OpenAI messages list: system prompt + prior turns + context+question."""
+    context_text = _context_block(context_chunks)
+    user_turn = (
+        f"Context:\n{context_text}\n\nQuestion:\n{question}"
+        if context_text
+        else f"Question:\n{question}"
+    )
+    messages: List[Dict] = [{"role": "system", "content": SYSTEM_PROMPT}]
+    if history:
+        messages.extend(history)
+    messages.append({"role": "user", "content": user_turn})
+    return messages
+
+
+def build_prompt(question: str, context_chunks: List[Dict]) -> str:
+    """Legacy helper kept for callers that want a single flat prompt string."""
+    msgs = build_messages(question, context_chunks, history=None)
+    return "\n\n".join(m["content"] for m in msgs)
+
+
+@with_retry("openai", exception_types=_OPENAI_RETRY_TYPES)
+def _openai_chat(**kwargs):
+    return _openai().chat.completions.create(timeout=_OPENAI_TIMEOUT_S, **kwargs)
+
+
+def generate_answer(
+    question: str,
+    context_chunks: List[Dict],
+    history: List[Dict] | None = None,
+    model: str = "gpt-4o-mini",
+    temperature: float = 0.0,
+) -> str:
+    messages = build_messages(question, context_chunks, history=history)
     try:
-        response=client.chat.completions.create(
+        response = _openai_chat(
             model=model,
-            messages=[{"role": "user", "content": prompt}],
+            messages=messages,
             temperature=temperature,
-            max_tokens=512
+            max_tokens=512,
         )
-        answer = response.choices[0].message.content.strip()
-        print(f"DEBUG generate_answer(): Response received: {answer[:200]}...")
-        return answer
+        return (response.choices[0].message.content or "").strip()
     except Exception as e:
-        print(f"ERROR generate_answer(): OpenAI API error: {e}")
-        answer = "AI response temporarily unavailable (quota exceeded)."
-        return answer
+        log.exception("generate.openai_failed", error=str(e))
+        return "AI response temporarily unavailable."
+
+
+def generate_answer_stream(
+    question: str,
+    context_chunks: List[Dict],
+    history: List[Dict] | None = None,
+    model: str = "gpt-4o-mini",
+    temperature: float = 0.0,
+) -> Generator[str, None, None]:
+    """Yield response token deltas as they arrive from OpenAI."""
+    messages = build_messages(question, context_chunks, history=history)
+    try:
+        stream = _openai_chat(
+            model=model,
+            messages=messages,
+            temperature=temperature,
+            max_tokens=512,
+            stream=True,
+        )
+        for event in stream:
+            choice = event.choices[0] if event.choices else None
+            if not choice:
+                continue
+            delta = getattr(choice.delta, "content", None)
+            if delta:
+                yield delta
+    except Exception as e:
+        log.exception("generate.stream_failed", error=str(e))
+        yield "\n[AI response temporarily unavailable]"

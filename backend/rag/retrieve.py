@@ -1,81 +1,76 @@
-import json
-import os
-import faiss
+"""Retrieval pipeline: embed query, run vector + BM25 search, fuse with RRF,
+then cross-encoder rerank. The vector backend (FAISS/Qdrant) is chosen in
+``rag.vector_store``; this module is agnostic to it.
+"""
+from __future__ import annotations
+
+from typing import Dict, List, Optional
+
 import numpy as np
 from sentence_transformers import SentenceTransformer
-from typing import List, Dict, Optional
-from config import INDEX_DIR, FAISS_INDEX_PATH, METADATA_PATH, EMBEDDING_MODEL_NAME, TOP_K, SIMILARITY_THRESHOLD
+
+from config import EMBEDDING_MODEL_NAME, SIMILARITY_THRESHOLD, TOP_K
+from rag.hybrid import bm25_search, rrf_fuse
+from rag.rerank import rerank
+from rag.user_store import paths_for
+from rag.vector_store import get_store
 
 model = SentenceTransformer(EMBEDDING_MODEL_NAME)
 
-# Global variables for lazy loading
-_index: Optional[faiss.Index] = None
-_metadata: Optional[List[Dict]] = None
+_TOP_K_RETRIEVE = 50  # wide net for recall; narrowed by rerank
+_DEFAULT_FINAL_TOP_K = TOP_K
 
 
-def load_index_and_metadata():
-    """Load FAISS index and metadata lazily."""
-    global _index, _metadata
-    
-    if _index is None or _metadata is None:
-        if not os.path.exists(FAISS_INDEX_PATH):
-            raise FileNotFoundError(
-                f"FAISS index not found at {FAISS_INDEX_PATH}. "
-                "Please ingest documents first."
-            )
-        if not os.path.exists(METADATA_PATH):
-            raise FileNotFoundError(
-                f"Metadata not found at {METADATA_PATH}. "
-                "Please ingest documents first."
-            )
-        
-        _index = faiss.read_index(FAISS_INDEX_PATH)
-        _index.hnsw.efSearch = 64
-        
-        with open(METADATA_PATH, "r", encoding="utf-8") as f:
-            _metadata = json.load(f)
-    
-    return _index, _metadata
+def reload_index(user_id: Optional[str] = None) -> None:
+    """Drop cached index handles (BM25) after an ingest/delete."""
+    from rag.hybrid import reload_bm25
 
-
-def reload_index():
-    """Force reload of index and metadata. Call this after ingestion."""
-    global _index, _metadata
-    _index = None
-    _metadata = None
-    return load_index_and_metadata()
+    if user_id is None:
+        reload_bm25(None)
+    else:
+        reload_bm25(user_id)
 
 
 def embed(texts: List[str]) -> np.ndarray:
-    return model.encode(
-        texts,
-        normalize_embeddings=True
-    ).astype("float32")
+    return model.encode(texts, normalize_embeddings=True).astype("float32")
 
 
-def retrieve(query:str, top_k:int=TOP_K,threshold:float=SIMILARITY_THRESHOLD)->List[Dict]:
-    index, metadata = load_index_and_metadata()
-    
-    query_embedding=embed([query])
-    scores, indices=index.search(query_embedding, top_k)
-    
-    print(f"DEBUG retrieve(): Found {len(scores[0])} results from FAISS")
-    print(f"DEBUG retrieve(): Scores: {scores[0][:5]}")
-    print(f"DEBUG retrieve(): Threshold: {threshold}")
-    
-    results=[]
-    for score, idx in zip(scores[0], indices[0]):
-        print(f"  Checking: score={score:.4f}, threshold={threshold}, pass={score >= threshold}")
-        if score<threshold:
-            continue
-        chunk=metadata[idx]
-        results.append({"chunk_id":chunk["chunk_id"],"source":chunk["source"],"text":chunk["text"],"score":float(score)})
-    
-    print(f"DEBUG retrieve(): Returning {len(results)} chunks after threshold filter")
-    return results
+def retrieve(
+    query: str,
+    *,
+    user_id: Optional[str] = None,
+    top_k: int = _DEFAULT_FINAL_TOP_K,
+    threshold: float = SIMILARITY_THRESHOLD,
+    query_embedding: np.ndarray | None = None,
+) -> List[Dict]:
+    namespace = paths_for(user_id).namespace
+    store = get_store()
+
+    q_emb = query_embedding if query_embedding is not None else embed([query])
+
+    vector_hits = store.search(namespace, q_emb, _TOP_K_RETRIEVE, threshold)
+    bm25_hits = bm25_search(query, user_id=user_id, metadata=None, top_k=_TOP_K_RETRIEVE)
+
+    if bm25_hits:
+        fused = rrf_fuse(vector_hits, bm25_hits, top_k=_TOP_K_RETRIEVE)
+    else:
+        fused = vector_hits
+
+    if not fused:
+        return []
+
+    return rerank(query, fused, top_k=top_k)
 
 
-# Alias for backwards compatibility
-def retrieve_top_chunks(query: str, top_k: int = TOP_K, threshold: float = SIMILARITY_THRESHOLD) -> List[Dict]:
-    """Alias for retrieve() function."""
-    return retrieve(query, top_k, threshold)
+def retrieve_top_chunks(
+    query: str,
+    top_k: int = _DEFAULT_FINAL_TOP_K,
+    threshold: float = SIMILARITY_THRESHOLD,
+    *,
+    user_id: Optional[str] = None,
+) -> List[Dict]:
+    return retrieve(query, user_id=user_id, top_k=top_k, threshold=threshold)
+
+
+def embed_query(query: str) -> np.ndarray:
+    return embed([query])
