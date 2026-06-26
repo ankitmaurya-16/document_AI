@@ -1,0 +1,30 @@
+[run]
+branch = False
+source = .
+omit =
+    tests/*
+    data/*
+    __pycache__/*
+    # Thin entrypoint — app boot is exercised indirectly by every route test.
+    gunicorn.conf.py
+    # Only exercised in prod with real keys/endpoints; mocking them has no
+    # safety value and would make the file pass vacuously.
+    sentry_setup.py
+    # Celery signals + OTel hooks run only in worker processes; covered by
+    # the integration tests, not the fast unit suite.
+    telemetry.py
+
+[report]
+exclude_lines =
+    pragma: no cover
+    raise NotImplementedError
+    if __name__ == .__main__.:
+    \.\.\.
+    if TYPE_CHECKING:
+show_missing = True
+precision = 1
+
+[paths]
+source =
+    .
+    /app
