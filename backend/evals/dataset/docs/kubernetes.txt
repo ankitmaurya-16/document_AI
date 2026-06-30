@@ -1,0 +1,65 @@
+Kubernetes Core Concepts
+
+Kubernetes is an open-source container orchestrator originally developed
+at Google and released in 2014. It is commonly abbreviated as k8s.
+
+Pods
+----
+A pod is the smallest deployable unit in Kubernetes. A pod wraps one or
+more tightly-coupled containers that share a network namespace, a single
+IP address, and a set of mounted volumes. Containers in the same pod
+communicate over localhost and are always co-scheduled on the same node.
+
+Deployments and ReplicaSets
+---------------------------
+A Deployment declaratively manages a set of identical pods by creating a
+ReplicaSet under the hood. The ReplicaSet ensures that a specified
+replica count of pods is running at all times. A Deployment supports
+rolling updates and rollbacks by cycling ReplicaSets; the
+``spec.strategy.type`` field selects between ``RollingUpdate`` (the
+default) and ``Recreate``.
+
+Services
+--------
+A Service is a stable virtual IP and DNS name that fronts a dynamic set
+of pods selected by labels. The main Service types are ClusterIP
+(internal-only, the default), NodePort (exposes a port on every node),
+LoadBalancer (provisions a cloud load balancer), and ExternalName
+(CNAME to an external DNS name).
+
+Ingress
+-------
+An Ingress is a rules object that maps HTTP hostnames and paths to
+Services. Ingress objects are implemented by an Ingress Controller such
+as ingress-nginx, Traefik, or a cloud-provider controller.
+
+ConfigMaps and Secrets
+----------------------
+ConfigMaps store non-confidential key-value configuration. Secrets store
+confidential data; their values are base64-encoded on the wire but are
+not encrypted at rest by default. Enabling etcd encryption at rest is a
+common hardening step.
+
+StatefulSets and DaemonSets
+---------------------------
+A StatefulSet manages stateful workloads that need stable network
+identities and ordered deployment, update, and scaling. Each pod gets a
+persistent ordinal hostname and an associated PersistentVolumeClaim.
+
+A DaemonSet ensures that a copy of a pod runs on every node or every
+node matching a selector. Typical uses are log shippers, node monitoring
+agents, and CNI plugins.
+
+Horizontal Pod Autoscaler
+-------------------------
+The HorizontalPodAutoscaler, or HPA, scales the number of pod replicas in
+a Deployment or StatefulSet based on observed CPU utilization, memory
+usage, or custom metrics exposed through the metrics API. Pod vertical
+scaling is handled by the separate VerticalPodAutoscaler.
+
+kubectl
+-------
+``kubectl`` is the command-line tool that talks to the Kubernetes API
+server. Common verbs are ``get``, ``describe``, ``apply``, ``delete``,
+``logs``, ``exec``, and ``port-forward``. The ``-n`` flag selects a
+namespace; ``--context`` selects a cluster from the kubeconfig file.

@@ -1,0 +1,64 @@
+Git Internals Notes
+
+Git is a distributed version control system created by Linus Torvalds in
+2005 to manage the Linux kernel sources. Every clone contains the full
+history, enabling offline work and multiple independent lines of
+development.
+
+The Object Model
+----------------
+Git is, at heart, a content-addressable key-value store. Every object is
+identified by the SHA-1 hash of its contents. There are four object
+types: blob (file contents), tree (directory listing linking to blobs and
+other trees), commit (a snapshot pointing at a tree plus metadata and
+parent commits), and tag (an annotated reference to another object).
+Git is migrating to SHA-256 for new repositories, but SHA-1 remains the
+default as of this writing.
+
+The Index
+---------
+The index, also called the staging area, sits between the working
+directory and the repository. ``git add`` moves changes from the working
+directory to the index; ``git commit`` records the index as a new commit.
+``git diff`` without arguments shows working-directory versus index;
+``git diff --cached`` shows index versus HEAD.
+
+Branches and HEAD
+-----------------
+A branch is a named movable pointer to a commit, stored under
+``.git/refs/heads/``. HEAD is a symbolic reference that usually points to
+the current branch; when HEAD points directly at a commit instead of a
+branch, the repository is in a "detached HEAD" state.
+
+Merges and Rebases
+------------------
+``git merge`` integrates changes from one branch into another by creating
+a merge commit with two parents. A fast-forward merge avoids the merge
+commit when the target branch is a direct ancestor of the source.
+
+``git rebase`` rewrites commits from one branch onto another, producing a
+linear history. Because rebase replaces commits with new ones, it should
+not be used on branches that others have based work on unless
+coordinated via ``git push --force-with-lease``.
+
+Remotes
+-------
+A remote is a named URL to another Git repository. The conventional name
+for the primary upstream is ``origin``. ``git fetch`` downloads new
+commits without updating local branches; ``git pull`` fetches and then
+merges or rebases; ``git push`` uploads local commits to a remote.
+
+Reflog
+------
+The reflog records every update to HEAD and to local branches in the
+last 90 days by default. It makes it possible to recover commits that
+appear lost after a hard reset, a rebase gone wrong, or a deleted branch.
+``git reflog`` prints the log; ``git reset --hard HEAD@{2}`` restores the
+state from two reflog entries ago.
+
+Stash
+-----
+``git stash`` records uncommitted working-directory and index changes on
+a stack and reverts them, letting you switch branches on a clean tree.
+``git stash pop`` reapplies the most recent stash and removes it from the
+stack; ``git stash apply`` reapplies without removing.

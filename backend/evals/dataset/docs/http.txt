@@ -1,0 +1,63 @@
+HTTP Protocol Notes
+
+HTTP, the Hypertext Transfer Protocol, is a stateless request-response
+protocol that powers the World Wide Web. Version 1.1 is specified in
+RFC 9110 through RFC 9114; version 2 in RFC 9113; version 3 in RFC 9114.
+
+Request Methods
+---------------
+The common methods are GET (retrieve a resource), POST (submit data,
+usually creating a new resource), PUT (replace a resource at a known URI),
+PATCH (partial update), DELETE (remove a resource), HEAD (like GET but
+response body is omitted), and OPTIONS (discover allowed methods).
+
+GET, HEAD, and OPTIONS are classified as safe, meaning they do not alter
+server state. GET, HEAD, OPTIONS, PUT, and DELETE are idempotent: applying
+the same request twice has the same effect as applying it once. POST is
+neither safe nor idempotent.
+
+Status Codes
+------------
+Status codes are grouped into five classes by their first digit:
+- 1xx informational
+- 2xx success
+- 3xx redirection
+- 4xx client error
+- 5xx server error
+
+Frequently seen codes: 200 OK, 201 Created, 204 No Content, 301 Moved
+Permanently, 302 Found, 304 Not Modified, 400 Bad Request, 401
+Unauthorized, 403 Forbidden, 404 Not Found, 409 Conflict, 429 Too Many
+Requests, 500 Internal Server Error, 502 Bad Gateway, 503 Service
+Unavailable, 504 Gateway Timeout.
+
+Authentication and Authorization
+--------------------------------
+The ``WWW-Authenticate`` response header names the challenge, and the
+``Authorization`` request header carries the credential. Common schemes
+are Basic (base64-encoded user:password), Bearer (typically carrying a
+JWT), and Digest.
+
+Caching
+-------
+The ``Cache-Control`` header governs freshness and storage. Directives
+include ``public``, ``private``, ``no-store``, ``no-cache``,
+``max-age=<seconds>``, and ``s-maxage=<seconds>``. An ``ETag`` is an
+opaque validator a client echoes back in ``If-None-Match`` to trigger a
+304 Not Modified response when the representation has not changed.
+
+HTTP/2 and HTTP/3
+-----------------
+HTTP/2 introduced binary framing, header compression via HPACK, and
+request multiplexing over a single TCP connection, eliminating head-of-line
+blocking at the HTTP layer. HTTP/3 runs over QUIC, a UDP-based transport
+with built-in TLS 1.3, eliminating head-of-line blocking at the transport
+layer as well.
+
+CORS
+----
+Cross-Origin Resource Sharing is a browser mechanism that lets a server
+opt in to requests from origins other than its own. The server uses
+response headers such as ``Access-Control-Allow-Origin``,
+``Access-Control-Allow-Methods``, and ``Access-Control-Allow-Headers``. A
+browser may issue a pre-flight OPTIONS request before a non-simple request.

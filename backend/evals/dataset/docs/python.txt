@@ -1,0 +1,63 @@
+Python Language Reference (Excerpt)
+
+Python is a high-level, interpreted, dynamically typed programming language
+created by Guido van Rossum and first released in 1991. The reference
+implementation is called CPython and is written in C.
+
+Indentation
+-----------
+Unlike most languages, Python uses indentation to delimit blocks instead of
+curly braces. The standard recommended by PEP 8 is four spaces per
+indentation level. Tabs and spaces cannot be mixed inside a single block.
+
+Data Types
+----------
+The built-in numeric types are int (arbitrary precision), float (IEEE 754
+double precision), and complex. The bool type is a subclass of int: True
+evaluates to 1 and False evaluates to 0.
+
+Container types include list (mutable ordered sequence), tuple (immutable
+ordered sequence), dict (hash map), and set (hash set). Dictionaries
+preserve insertion order starting in Python 3.7.
+
+Strings are sequences of Unicode code points. The str type is immutable,
+while bytes is an immutable sequence of 8-bit integers.
+
+The walrus operator ``:=`` was introduced in Python 3.8 and allows assignment
+inside an expression.
+
+The Global Interpreter Lock
+---------------------------
+CPython uses a Global Interpreter Lock, usually called the GIL, which
+ensures that only one thread executes Python bytecode at a time. The GIL
+simplifies memory management but prevents true parallelism in multithreaded
+CPU-bound Python code. Workarounds are multiprocessing, C extensions that
+release the GIL, or asyncio for I/O-bound workloads.
+
+Virtual Environments
+--------------------
+The recommended way to isolate dependencies per project is a virtual
+environment. The standard tool is ``venv``, invoked as
+``python -m venv .venv`` followed by ``source .venv/bin/activate``. Third
+party alternatives include virtualenv, poetry, and uv.
+
+Package Management
+------------------
+The official package index is PyPI, the Python Package Index, hosted at
+pypi.org. The standard installer is pip. A project typically declares its
+dependencies in ``requirements.txt`` or the modern ``pyproject.toml``.
+
+Decorators
+----------
+A decorator is a callable that takes a function or class and returns a new
+one. The ``@decorator`` syntax is syntactic sugar for
+``f = decorator(f)``. Common built-in decorators include ``@staticmethod``,
+``@classmethod``, and ``@property``.
+
+Type Hints
+----------
+PEP 484 added optional type hints. Type hints are not enforced at runtime by
+CPython; they are consumed by external tools such as mypy, pyright, and
+pyre. The ``typing`` module provides generic types like ``List[int]`` and
+``Optional[str]``, and starting in Python 3.10 the bitwise OR operator can
+be used for union types: ``int | str``.

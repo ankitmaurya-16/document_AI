@@ -1,0 +1,61 @@
+MongoDB Primer
+
+MongoDB is an open-source document-oriented database first released by
+10gen (now MongoDB Inc.) in 2009. Data is stored as BSON documents, a
+binary-encoded superset of JSON.
+
+Documents and Collections
+-------------------------
+A MongoDB document is analogous to a row in a relational database, and a
+collection is analogous to a table. Documents within a collection do not
+need to share the same fields, which is how MongoDB supports a flexible or
+"schemaless" data model. Documents are limited to 16 megabytes in size.
+
+The ObjectId Type
+-----------------
+The default primary key is a 12-byte ObjectId stored in the ``_id`` field.
+The 12 bytes encode a 4-byte Unix timestamp, a 5-byte random value unique
+to the machine and process, and a 3-byte incrementing counter. Because the
+timestamp prefix makes ObjectIds roughly sortable by creation time, a sort
+on ``_id`` approximates a sort on insert time.
+
+Indexes
+-------
+MongoDB supports single-field, compound, multikey (for arrays), text,
+geospatial, and wildcard indexes. A unique index rejects duplicate values
+for the indexed key; an index with a ``partialFilterExpression`` only
+indexes documents that match the filter. TTL indexes automatically delete
+documents after a configurable number of seconds elapse past a date field.
+
+Replication
+-----------
+A replica set is a group of mongod processes that maintain the same data
+set. There is one primary and one or more secondaries. Writes go to the
+primary and replicate asynchronously to secondaries via the oplog. If the
+primary becomes unreachable, the replica set holds an election and promotes
+a secondary. The recommended minimum is a three-node replica set for
+high availability.
+
+Sharding
+--------
+Sharding is MongoDB's horizontal scaling strategy. A sharded cluster
+consists of shards (each a replica set), a config server replica set
+holding cluster metadata, and one or more mongos routers through which
+clients connect. Every document in a sharded collection is assigned to a
+shard based on the shard key, which should be chosen to distribute writes
+evenly and avoid hot spots.
+
+Aggregation Pipeline
+--------------------
+The aggregation pipeline is MongoDB's primary tool for analytics and data
+transformation. A pipeline is an array of stages such as ``$match``,
+``$group``, ``$project``, ``$lookup``, and ``$unwind``. ``$lookup``
+performs a left outer join against another collection in the same
+database.
+
+Transactions
+------------
+Multi-document ACID transactions are supported on replica sets starting in
+version 4.0, and on sharded clusters starting in version 4.2. A
+transaction commits or aborts atomically across all participating
+documents.

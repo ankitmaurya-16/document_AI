@@ -1,0 +1,30 @@
+{"id": "py-01", "question": "Who created Python and in what year was it first released?", "expected_answer": "Guido van Rossum created Python and first released it in 1991.", "source_docs": ["python.txt"]}
+{"id": "py-02", "question": "What does PEP 8 recommend for Python indentation?", "expected_answer": "Four spaces per indentation level.", "source_docs": ["python.txt"]}
+{"id": "py-03", "question": "What does the GIL in CPython ensure and what problem does it cause?", "expected_answer": "The Global Interpreter Lock ensures only one thread executes Python bytecode at a time. It simplifies memory management but prevents true parallelism for CPU-bound multithreaded code.", "source_docs": ["python.txt"]}
+{"id": "py-04", "question": "In which Python version did dictionaries start preserving insertion order?", "expected_answer": "Python 3.7.", "source_docs": ["python.txt"]}
+{"id": "py-05", "question": "What Python version introduced the walrus operator?", "expected_answer": "Python 3.8.", "source_docs": ["python.txt"]}
+{"id": "py-06", "question": "Are Python type hints enforced at runtime by CPython?", "expected_answer": "No. Type hints are not enforced at runtime; they are consumed by external tools such as mypy, pyright, and pyre.", "source_docs": ["python.txt"]}
+{"id": "mongo-01", "question": "What is the maximum size of a MongoDB document?", "expected_answer": "16 megabytes.", "source_docs": ["mongodb.txt"]}
+{"id": "mongo-02", "question": "How many bytes is a MongoDB ObjectId and what do they encode?", "expected_answer": "12 bytes, composed of a 4-byte Unix timestamp, a 5-byte random value unique to the machine and process, and a 3-byte incrementing counter.", "source_docs": ["mongodb.txt"]}
+{"id": "mongo-03", "question": "What does a MongoDB TTL index do?", "expected_answer": "A TTL index automatically deletes documents after a configurable number of seconds elapse past a date field.", "source_docs": ["mongodb.txt"]}
+{"id": "mongo-04", "question": "What are the three components of a MongoDB sharded cluster?", "expected_answer": "Shards (each a replica set), a config server replica set, and one or more mongos routers.", "source_docs": ["mongodb.txt"]}
+{"id": "mongo-05", "question": "Starting in which MongoDB version were multi-document ACID transactions supported on sharded clusters?", "expected_answer": "Version 4.2.", "source_docs": ["mongodb.txt"]}
+{"id": "mongo-06", "question": "Which aggregation stage performs a left outer join against another collection?", "expected_answer": "$lookup.", "source_docs": ["mongodb.txt"]}
+{"id": "http-01", "question": "Which HTTP methods are classified as safe?", "expected_answer": "GET, HEAD, and OPTIONS.", "source_docs": ["http.txt"]}
+{"id": "http-02", "question": "Is POST idempotent?", "expected_answer": "No. POST is neither safe nor idempotent.", "source_docs": ["http.txt"]}
+{"id": "http-03", "question": "What HTTP status code means Too Many Requests?", "expected_answer": "429.", "source_docs": ["http.txt"]}
+{"id": "http-04", "question": "What header does a client use to echo back an ETag for conditional requests?", "expected_answer": "If-None-Match.", "source_docs": ["http.txt"]}
+{"id": "http-05", "question": "What transport protocol does HTTP/3 run over?", "expected_answer": "QUIC, a UDP-based transport with built-in TLS 1.3.", "source_docs": ["http.txt"]}
+{"id": "http-06", "question": "What header compression algorithm does HTTP/2 use?", "expected_answer": "HPACK.", "source_docs": ["http.txt"]}
+{"id": "k8s-01", "question": "What is the smallest deployable unit in Kubernetes?", "expected_answer": "A pod.", "source_docs": ["kubernetes.txt"]}
+{"id": "k8s-02", "question": "What Kubernetes object does a Deployment create under the hood to manage replicas?", "expected_answer": "A ReplicaSet.", "source_docs": ["kubernetes.txt"]}
+{"id": "k8s-03", "question": "What are the four main Service types in Kubernetes?", "expected_answer": "ClusterIP, NodePort, LoadBalancer, and ExternalName.", "source_docs": ["kubernetes.txt"]}
+{"id": "k8s-04", "question": "Are Kubernetes Secret values encrypted at rest by default?", "expected_answer": "No. Secret values are base64-encoded on the wire but are not encrypted at rest by default; enabling etcd encryption at rest is a common hardening step.", "source_docs": ["kubernetes.txt"]}
+{"id": "k8s-05", "question": "What Kubernetes workload object ensures a copy of a pod runs on every node?", "expected_answer": "A DaemonSet.", "source_docs": ["kubernetes.txt"]}
+{"id": "k8s-06", "question": "What does the Horizontal Pod Autoscaler scale based on?", "expected_answer": "Observed CPU utilization, memory usage, or custom metrics exposed through the metrics API.", "source_docs": ["kubernetes.txt"]}
+{"id": "git-01", "question": "Who created Git and in what year?", "expected_answer": "Linus Torvalds created Git in 2005 to manage the Linux kernel sources.", "source_docs": ["git.txt"]}
+{"id": "git-02", "question": "What are the four Git object types?", "expected_answer": "blob, tree, commit, and tag.", "source_docs": ["git.txt"]}
+{"id": "git-03", "question": "What does a detached HEAD state mean in Git?", "expected_answer": "HEAD points directly at a commit instead of pointing at a branch.", "source_docs": ["git.txt"]}
+{"id": "git-04", "question": "How long does Git keep reflog entries by default?", "expected_answer": "90 days.", "source_docs": ["git.txt"]}
+{"id": "git-05", "question": "What is the difference between git stash pop and git stash apply?", "expected_answer": "git stash pop reapplies the most recent stash and removes it from the stack; git stash apply reapplies the stash without removing it.", "source_docs": ["git.txt"]}
+{"id": "git-06", "question": "Why should you avoid rebasing branches that others have based work on?", "expected_answer": "Because rebase replaces commits with new ones, so rebasing a shared branch breaks other peoples' history unless coordinated via git push --force-with-lease.", "source_docs": ["git.txt"]}
