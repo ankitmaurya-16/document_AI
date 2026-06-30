@@ -86,7 +86,7 @@ const Login = () => {
           {/* Google button */}
           <button
             type="button"
-            onClick={handleGoogleLogin}
+            onClick={() => handleGoogleLogin()}
             disabled={isLoading}
             className="w-full mt-8 bg-gray-500/10 flex items-center justify-center h-12 rounded-full hover:bg-gray-500/20 transition-colors disabled:opacity-50"
           >

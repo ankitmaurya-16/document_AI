@@ -1,7 +1,7 @@
-import React, { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useAppContext } from "../context/AppContext"
 import { assets } from "../assets/assets"
-import Message from "./message"
+import Message from "./Message"
 
 const ChatBox = () => {
   const containerRef = useRef(null)
@@ -63,7 +63,7 @@ const ChatBox = () => {
 
     if (currentFiles.length === 0) {
       // Chat without files
-      const response = await fetch(`${API_URL}/api/chat`, {
+      const response = await fetch(`${API_URL}/api/v1/chat`, {
         method: "POST",
         headers: {
           ...headers,
@@ -91,7 +91,12 @@ const ChatBox = () => {
 
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: data.response, timestamp: Date.now() },
+        {
+          role: "assistant",
+          content: data.response,
+          sources: data.sources || [],
+          timestamp: Date.now(),
+        },
       ])
 
       // Refresh chats and user credits if authenticated
@@ -108,7 +113,7 @@ const ChatBox = () => {
         formData.append("files", file)
       })
       
-      const response = await fetch(`${API_URL}/api/upload`, {
+      const response = await fetch(`${API_URL}/api/v1/upload`, {
         method: "POST",
         headers,
         body: formData,
@@ -133,7 +138,7 @@ const ChatBox = () => {
         formData.append("files", file)
       })
       
-      const response = await fetch(`${API_URL}/api/chat/upload`, {
+      const response = await fetch(`${API_URL}/api/v1/chat/upload`, {
         method: "POST",
         headers,
         body: formData,
@@ -155,7 +160,12 @@ const ChatBox = () => {
 
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: data.response, timestamp: Date.now() },
+        {
+          role: "assistant",
+          content: data.response,
+          sources: data.sources || [],
+          timestamp: Date.now(),
+        },
       ])
 
       // Update current chat ID and refresh chats/credits if authenticated
@@ -214,7 +224,7 @@ const ChatBox = () => {
         )}
 
         {messages.map((message, index) => (
-          <Message key={index} message={message} />
+          <Message key={index} message={message} chatId={currentChatId} />
         ))}
 
         {/* Loading dots */}

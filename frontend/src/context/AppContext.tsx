@@ -1,10 +1,44 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
+import type { Chat, Document, FeedbackPayload, Message, User } from "../types/api";
 
-const API_URL = "http://localhost:5001";
+// Dev: talk to Flask directly (http://localhost:5001).
+// Docker/prod: Nginx proxies /api to the backend so we leave API_URL empty.
+const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:5001";
 
-const AppContext = createContext()
-export const AppContextProvider=({ children })=>{
+type AuthResult = { success: boolean; error?: string };
+
+export interface AppContextValue {
+    navigate: ReturnType<typeof useNavigate>;
+    user: User | null;
+    setUser: (u: User | null) => void;
+    token: string | null;
+    login: (email: string, password: string) => Promise<AuthResult>;
+    register: (name: string, email: string, password: string) => Promise<AuthResult>;
+    logout: () => void;
+    googleLogin: (accessToken: string) => Promise<AuthResult>;
+    chats: Chat[];
+    setChats: (chats: Chat[]) => void;
+    selectedChat: Chat | null;
+    setSelectedChat: (chat: Chat | null) => void;
+    theme: string;
+    setTheme: (theme: string) => void;
+    loading: boolean;
+    fetchUserChats: () => Promise<void>;
+    createNewChat: (name?: string) => Promise<Chat | null>;
+    deleteChat: (chatId: string) => Promise<boolean>;
+    updateChatInState: (chatId: string, messages: Message[]) => void;
+    refreshChat: (chatId: string) => Promise<Chat | null>;
+    refreshUser: () => Promise<void>;
+    fetchDocuments: () => Promise<Document[]>;
+    deleteDocument: (docId: string) => Promise<boolean>;
+    submitFeedback: (payload: FeedbackPayload) => Promise<boolean>;
+    startCheckout: (plan: string) => Promise<{ url?: string; error?: string } | null>;
+    API_URL: string;
+}
+
+const AppContext = createContext<AppContextValue | undefined>(undefined)
+export const AppContextProvider=({ children }: { children: ReactNode })=>{
     const navigate = useNavigate()
     const [user, setUser] = useState(null);
     const [chats, setChats] = useState([]);
@@ -28,7 +62,7 @@ export const AppContextProvider=({ children })=>{
         }
         
         try {
-            const res = await fetch(`${API_URL}/api/auth/verify`, {
+            const res = await fetch(`${API_URL}/api/v1/auth/verify`, {
                 headers: { 'Authorization': `Bearer ${storedToken}` }
             });
             
@@ -55,7 +89,7 @@ export const AppContextProvider=({ children })=>{
     const refreshUser = async () => {
         if (!token) return;
         try {
-            const res = await fetch(`${API_URL}/api/auth/verify`, {
+            const res = await fetch(`${API_URL}/api/v1/auth/verify`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (res.ok) {
@@ -70,7 +104,7 @@ export const AppContextProvider=({ children })=>{
     // Login
     const login = async (email, password) => {
         try {
-            const res = await fetch(`${API_URL}/api/auth/login`, {
+            const res = await fetch(`${API_URL}/api/v1/auth/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password })
@@ -94,7 +128,7 @@ export const AppContextProvider=({ children })=>{
     // Register
     const register = async (name, email, password) => {
         try {
-            const res = await fetch(`${API_URL}/api/auth/register`, {
+            const res = await fetch(`${API_URL}/api/v1/auth/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name, email, password })
@@ -118,7 +152,7 @@ export const AppContextProvider=({ children })=>{
     // Google OAuth Login
     const googleLogin = async (accessToken) => {
         try {
-            const res = await fetch(`${API_URL}/api/auth/google`, {
+            const res = await fetch(`${API_URL}/api/v1/auth/google`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ access_token: accessToken })
@@ -154,7 +188,7 @@ export const AppContextProvider=({ children })=>{
         if (!token) return;
         
         try {
-            const res = await fetch(`${API_URL}/api/chats`, {
+            const res = await fetch(`${API_URL}/api/v1/chats`, {
                 headers: getAuthHeaders()
             });
             
@@ -176,7 +210,7 @@ export const AppContextProvider=({ children })=>{
         if (!token) return null;
         
         try {
-            const res = await fetch(`${API_URL}/api/chats`, {
+            const res = await fetch(`${API_URL}/api/v1/chats`, {
                 method: 'POST',
                 headers: getAuthHeaders(),
                 body: JSON.stringify({ name })
@@ -199,7 +233,7 @@ export const AppContextProvider=({ children })=>{
         if (!token) return false;
         
         try {
-            const res = await fetch(`${API_URL}/api/chats/${chatId}`, {
+            const res = await fetch(`${API_URL}/api/v1/chats/${chatId}`, {
                 method: 'DELETE',
                 headers: getAuthHeaders()
             });
@@ -232,14 +266,12 @@ export const AppContextProvider=({ children })=>{
         if (!token) return null;
         
         try {
-            const res = await fetch(`${API_URL}/api/chats/${chatId}`, {
+            const res = await fetch(`${API_URL}/api/v1/chats/${chatId}`, {
                 headers: getAuthHeaders()
             });
             
             if (res.ok) {
                 const data = await res.json();
-                console.log('Refreshed chat data:', data.chat);
-                console.log('Messages timestamps:', data.chat.messages?.map(m => ({ content: m.content?.slice(0,20), timestamp: m.timestamp, parsed: new Date(m.timestamp) })));
                 setChats(prev => prev.map(c => c._id === chatId ? data.chat : c));
                 setSelectedChat(data.chat);
                 return data.chat;
@@ -274,6 +306,67 @@ export const AppContextProvider=({ children })=>{
         verifyAuth()
     },[])
 
+    // --- Documents ---
+    const fetchDocuments = async () => {
+        if (!token) return []
+        try {
+            const res = await fetch(`${API_URL}/api/v1/documents`, { headers: getAuthHeaders() })
+            if (res.ok) return (await res.json()).documents
+        } catch (e) {
+            console.error('fetchDocuments failed', e)
+        }
+        return []
+    }
+
+    const deleteDocument = async (docId) => {
+        if (!token) return false
+        try {
+            const res = await fetch(`${API_URL}/api/v1/documents/${docId}`, {
+                method: 'DELETE', headers: getAuthHeaders(),
+            })
+            return res.ok
+        } catch (e) {
+            console.error('deleteDocument failed', e)
+            return false
+        }
+    }
+
+    // --- Feedback ---
+    const submitFeedback = async ({ chatId, messageTimestamp, rating, comment }) => {
+        if (!token) return false
+        try {
+            const res = await fetch(`${API_URL}/api/v1/feedback`, {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ chatId, messageTimestamp, rating, comment: comment ?? null }),
+            })
+            return res.ok
+        } catch (e) {
+            console.error('submitFeedback failed', e)
+            return false
+        }
+    }
+
+    // --- Billing (Stripe) ---
+    const startCheckout = async (plan) => {
+        if (!token) return null
+        try {
+            const res = await fetch(`${API_URL}/api/v1/billing/create-checkout-session`, {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ plan }),
+            })
+            const data = await res.json()
+            if (res.ok && data.url) {
+                window.location.href = data.url
+                return data
+            }
+            return { error: data.error || 'Checkout unavailable' }
+        } catch (e) {
+            return { error: 'Network error' }
+        }
+    }
+
     const value = {
         navigate, 
         user, setUser, 
@@ -289,6 +382,10 @@ export const AppContextProvider=({ children })=>{
         updateChatInState,
         refreshChat,
         refreshUser,
+        fetchDocuments,
+        deleteDocument,
+        submitFeedback,
+        startCheckout,
         API_URL
     }
     return (
@@ -297,4 +394,8 @@ export const AppContextProvider=({ children })=>{
         </AppContext.Provider>
     )
 }
-export const useAppContext = ()=> useContext(AppContext)
+export const useAppContext = (): AppContextValue => {
+    const ctx = useContext(AppContext)
+    if (!ctx) throw new Error("useAppContext must be used inside AppContextProvider")
+    return ctx
+}

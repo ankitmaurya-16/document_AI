@@ -100,6 +100,16 @@ const Sidebar = ({isMenuOpen, setIsMenuOpen}) => {
         </div>
       </div> */}
 
+        {/** My Documents */}
+      <div onClick={()=>{navigate('/documents'); if(window.innerWidth < 768) setIsMenuOpen(false)}} className='flex items-center gap-2 p-3 mt-4 border border-gray-300
+      dark:border-indigo-500/20 rounded-md cursor-pointer hover:scale-103 hover:dark:bg-black/40 transition-all'>
+        <img src={assets.gallery_icon} className='w-4.5 invert dark:invert-0'/>
+        <div className='flex flex-col text-sm'>
+            <p>My Documents</p>
+            <p className='text-xs text-gray-400'>Manage uploaded files</p>
+        </div>
+      </div>
+
         {/** Credit Purchases Option */}
       <div onClick={()=>{navigate('/credits'); if(window.innerWidth < 768) setIsMenuOpen(false)}} className='flex items-center gap-2 p-3 mt-4 border border-gray-300
       dark:border-indigo-500/20 rounded-md cursor-pointer hover:scale-103 hover:dark:bg-black/40 transition-all'>
