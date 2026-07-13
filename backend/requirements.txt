@@ -31,7 +31,7 @@ redis==5.0.4
 celery[redis]==5.3.6
 
 # Optional — Stripe test-mode checkout
-stripe==8.8.0
+stripe==15.3.0
 
 # Optional — Qdrant vector backend. Selected when QDRANT_URL is set;
 # falls back to FAISS otherwise so local/test runs don't need the server.
