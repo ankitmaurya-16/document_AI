@@ -1,232 +1,210 @@
-# DocAI – Intelligent Document Q&A with RAG
+# DocAI — Production-grade Document Q&A with RAG
 
-A full-stack AI-powered document assistant that enables semantic search and intelligent Q&A over your documents using Retrieval-Augmented Generation (RAG).
+A full-stack Retrieval-Augmented Generation system: upload documents, ask natural-language questions, get answers with source citations. Built end-to-end with the discipline of a production service — structured logging, distributed tracing, Prometheus metrics, bounded retries on every external call, a scored evaluation harness for retrieval quality, integration tests against real datastores, and a security-linted CI pipeline.
 
----
+This repo is designed as a portfolio project. Every Wave A–H item described in [docs/roadmap.md](docs/roadmap.md) is implemented in this tree.
 
-## Overview
-
-DocAI allows users to upload documents (PDF, Word, Excel, PowerPoint, CSV, TXT) and ask natural language questions. The system retrieves relevant content using FAISS vector search and generates accurate, source-cited answers using OpenAI's GPT models.
-
-Built for users who need fast, accurate answers from their document collections without manually searching through files.
+<!-- Badges: CI / coverage once the repo is pushed to GitHub -->
+<!-- ![CI](https://github.com/<user>/<repo>/actions/workflows/ci.yml/badge.svg) -->
 
 ---
 
-## Features
+## Highlights
 
-- **Multi-format Document Support** – Upload and process PDF, DOCX, XLSX, PPTX, CSV, and TXT files
-- **Semantic Search** – FAISS-powered vector similarity search for precise retrieval
-- **AI-Powered Answers** – Context-aware responses using GPT-4o-mini with source citations
-- **Chat History** – Persistent conversation threads stored in MongoDB
-- **Authentication** – Email/password and Google OAuth login
-- **Credit System** – Built-in usage tracking and credit management
-- **Dark Mode UI** – Clean, responsive React frontend with Tailwind CSS
-
----
-
-## Tech Stack
-
-| Layer             | Technology                                 |
-| ----------------- | ------------------------------------------ |
-| **Frontend**      | React 19, Vite, Tailwind CSS, React Router |
-| **Backend**       | Flask, Python 3.x                          |
-| **Vector Search** | FAISS (Facebook AI Similarity Search)      |
-| **Embeddings**    | Sentence Transformers (all-MiniLM-L6-v2)   |
-| **LLM**           | OpenAI GPT-4o-mini                         |
-| **Database**      | MongoDB                                    |
-| **Auth**          | JWT, bcrypt, Google OAuth                  |
+- **RAG pipeline** — hybrid retrieval (FAISS HNSW + BM25 fused via RRF), optional cross-encoder reranker, context-packed generation with inline source citations
+- **Auth** — JWT + bcrypt, Google OAuth, per-route rate limiting
+- **Storage** — MongoDB for chats / users / feedback / documents, optional Qdrant for vectors, optional S3/MinIO for raw files
+- **Async ingestion** — Celery + Redis workers; retries with exponential backoff; failed jobs land in a dead-letter collection
+- **Billing** — Stripe Checkout (test mode); webhook is idempotent by `event_id` so retries never double-credit
+- **Observability** — OpenTelemetry traces → Jaeger, `/metrics` for Prometheus, a provisioned Grafana dashboard
+- **Reliability** — `tenacity` retries + timeouts on every OpenAI / Stripe / Qdrant / S3 call, security-headers middleware, PII-redacting log processor, graceful shutdown in gunicorn + Celery
+- **Quality gates** — ruff, bandit, pip-audit, trivy, pytest coverage ≥ 50 %, vitest, Playwright E2E, testcontainers integration suite
+- **Measured retrieval** — nightly eval harness scores Recall@K, MRR, and LLM-as-judge answers against a 30-question golden dataset
 
 ---
 
-## Project Structure
+## Live demo
 
+Not hosted yet. Planned — see [docs/adr/](docs/adr/). Until then, run locally with `docker compose up --build`.
+
+---
+
+## Quickstart
+
+Prereqs: Docker + Docker Compose, and an OpenAI API key (or `sk-test-…` for routes that don't need real LLM).
+
+```bash
+cp .env.docker.example .env.docker
+# Fill in OPENAI_API_KEY and JWT_SECRET at minimum.
+
+docker compose up --build
 ```
-├── backend/
-│   ├── app.py                 # Flask API server
-│   ├── requirements.txt       # Python dependencies
-│   ├── data/
-│   │   └── index/             # FAISS index storage (gitignored)
-│   └── rag/
-│       ├── auth.py            # Authentication logic
-│       ├── config.py          # RAG configuration
-│       ├── database.py        # MongoDB operations
-│       ├── generate.py        # LLM response generation
-│       ├── ingest.py          # Document processing & indexing
-│       └── retrieve.py        # Vector search & retrieval
-│
-├── frontend/
-│   ├── src/
-│   │   ├── App.jsx            # Main application component
-│   │   ├── components/
-│   │   │   ├── ChatBox.jsx    # Chat interface
-│   │   │   ├── Message.jsx    # Message rendering
-│   │   │   └── Sidebar.jsx    # Navigation sidebar
-│   │   ├── context/
-│   │   │   └── AppContext.jsx # Global state management
-│   │   └── pages/
-│   │       ├── Login.jsx      # Authentication page
-│   │       ├── Credits.jsx    # Credit management
-│   │       └── Community.jsx  # Community features
-│   ├── package.json
-│   └── vite.config.js
-│
-└── README.md
+
+Open http://localhost:5173 — register an account, upload a document, ask a question.
+
+Optional profiles:
+
+```bash
+docker compose --profile observability up     # + Jaeger, Prometheus, Grafana
+docker compose --profile celery up            # + async ingest worker
+docker compose --profile qdrant up            # swap FAISS → Qdrant
+docker compose --profile minio up             # swap local disk → S3-compatible object store
 ```
 
 ---
 
-## Installation
+## Architecture
 
-### Prerequisites
+High-level container diagram in [ARCHITECTURE.md](ARCHITECTURE.md). Four architectural decisions are captured in [docs/adr/](docs/adr/): vector store choice, object store choice, async framework, web framework.
 
-- Python 3.9+
-- Node.js 18+
-- MongoDB instance (local or Atlas)
-- OpenAI API key
+```
+browser ──► Nginx (frontend) ──► Flask (backend) ──► Mongo
+                                       │         ──► Redis ──► Celery worker
+                                       │         ──► FAISS | Qdrant
+                                       │         ──► local disk | MinIO | S3
+                                       │         ──► OpenAI / Stripe
+                                       └── OTel ─► Jaeger
+                                       └── /metrics ─► Prometheus ─► Grafana
+```
 
-### Backend Setup
+---
+
+## Retrieval quality
+
+The retriever is measured, not just shipped. The golden dataset lives at [backend/evals/dataset/golden.jsonl](backend/evals/dataset/golden.jsonl) — 30 questions across 5 seed docs.
 
 ```bash
 cd backend
-
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install dependencies
-pip install -r requirements.txt
+python -m evals.run                 # full run with LLM-as-judge
+python -m evals.run --smoke          # 5 questions, retrieval only
 ```
 
-Create a `.env` file in the `backend/` directory:
+The CI `evals-smoke` job runs a 5-question subset on every PR against a committed baseline ([backend/evals/baseline.json](backend/evals/baseline.json)). If Recall@5 drops more than 0.05, the job fails. A nightly workflow runs the full scored eval and uploads results as an artifact.
 
-```env
-OPENAI_API_KEY=your_openai_api_key
-MONGODB_URI=your_mongodb_connection_string
-JWT_SECRET=your_jwt_secret_key
-GOOGLE_CLIENT_ID=your_google_oauth_client_id  # Optional
-```
-
-Start the backend server:
-
-```bash
-python app.py
-```
-
-### Frontend Setup
-
-```bash
-cd frontend
-
-# Install dependencies
-npm install
-
-# Start development server
-npm run dev
-```
-
-The frontend will be available at `http://localhost:5173`
+Methodology, scoring rubric, and the LLM-judge prompt are documented in [backend/evals/README.md](backend/evals/README.md).
 
 ---
 
-## API Endpoints
+## Reliability
 
-### Authentication
+Every external call is wrapped with bounded exponential backoff via `tenacity` ([backend/resilience.py](backend/resilience.py)):
 
-| Method | Endpoint             | Description               |
-| ------ | -------------------- | ------------------------- |
-| POST   | `/api/auth/register` | Register new user         |
-| POST   | `/api/auth/login`    | Login with email/password |
-| POST   | `/api/auth/google`   | Google OAuth login        |
-| GET    | `/api/auth/verify`   | Verify JWT token          |
+| Failure mode | How it's handled | Where |
+|---|---|---|
+| OpenAI API transient error | 3 attempts, expo backoff, 30 s cap | [backend/rag/generate.py](backend/rag/generate.py) |
+| Stripe 5xx / rate-limit | `with_retry("stripe")` on `checkout.Session.create` | [backend/routes/v1/billing.py](backend/routes/v1/billing.py) |
+| Qdrant network hiccup | retry wrapper on upsert / search | [backend/rag/vector_store.py](backend/rag/vector_store.py) |
+| S3 / MinIO boto3 errors | boto3 `standard` retry mode | [backend/storage.py](backend/storage.py) |
+| Stripe webhook re-delivery | unique index on `processed_events.event_id` (+ 30-day TTL) — duplicate insert short-circuits with 200 | [backend/routes/v1/billing.py](backend/routes/v1/billing.py) |
+| Celery ingest failure | `autoretry_for=(APIError, ConnectionError)`, `retry_backoff=True`, `acks_late`; permanent failures logged to `failed_ingests` | [backend/tasks/ingest_tasks.py](backend/tasks/ingest_tasks.py) |
+| SIGTERM during request | `graceful_timeout=30` in gunicorn; Celery flushes OTel + closes clients on `worker_shutting_down` | [backend/gunicorn.conf.py](backend/gunicorn.conf.py) |
 
-### Chat & Documents
-
-| Method | Endpoint      | Description                      |
-| ------ | ------------- | -------------------------------- |
-| POST   | `/api/chat`   | Send message and get AI response |
-| POST   | `/api/ingest` | Upload and index documents       |
-| GET    | `/api/chats`  | Get user's chat history          |
-| GET    | `/api/health` | Health check                     |
-
-### Example Request
-
-```bash
-curl -X POST http://localhost:5000/api/chat \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer <your_token>" \
-  -d '{"prompt": "What are the key findings in the report?"}'
-```
+A `docai_external_retry_total{service}` counter in [backend/metrics.py](backend/metrics.py) surfaces retry rates in Grafana.
 
 ---
 
-## How It Works
+## Observability
 
-1. **Document Ingestion** – Files are uploaded, text is extracted, and content is chunked (400 chars with 50 char overlap)
-2. **Embedding** – Chunks are converted to vectors using Sentence Transformers
-3. **Indexing** – Vectors are stored in a FAISS HNSW index for fast similarity search
-4. **Retrieval** – User queries are embedded and matched against the index (top 10 results)
-5. **Reranking** – Top 3 most relevant chunks are selected
-6. **Generation** – GPT-4o-mini generates an answer using retrieved context with source citations
+- **Traces** — OpenTelemetry auto-instruments Flask / requests / PyMongo / Redis. Exports to OTLP over HTTP when `OTEL_EXPORTER_OTLP_ENDPOINT` is set; otherwise no-op. Jaeger UI at http://localhost:16686 under the `observability` profile.
+- **Metrics** — `/metrics` exposes Prometheus counters + histograms (app-level RAG counters live in [backend/metrics.py](backend/metrics.py)). Prometheus scrapes the backend; Grafana dashboard auto-provisioned from [monitoring/grafana/dashboards/](monitoring/grafana/dashboards/).
+- **Logs** — structlog with a PII-redacting processor in [backend/logging_config.py](backend/logging_config.py). JSON in prod; pretty console in dev.
+
+---
+
+## Security
+
+- **Headers** — CSP, HSTS, X-Frame-Options: DENY, X-Content-Type-Options, Referrer-Policy, Permissions-Policy via [backend/middleware/security.py](backend/middleware/security.py).
+- **Auth** — JWT signed with `JWT_SECRET`; bcrypt password hashing; Google OAuth token exchange server-side.
+- **Rate limits** — per-route limits in [backend/extensions.py](backend/extensions.py) (auth / chat / upload / default). Redis-backed in prod.
+- **Upload hardening** — MIME sniffing, extension allow-list, size cap, per-user storage quota.
+- **PII redaction** — log processor regex-redacts emails, bearer tokens, and card-number-shaped digits before the JSON renderer.
+- **Supply chain** — Dependabot ([.github/dependabot.yml](.github/dependabot.yml)), bandit security lint, pip-audit for CVEs, trivy filesystem scan in CI.
+- **Threat model + disclosure** — [SECURITY.md](SECURITY.md).
+
+---
+
+## Testing
+
+| Suite | Location | CI job |
+|---|---|---|
+| Backend unit | [backend/tests/](backend/tests/) | `backend` |
+| Backend coverage gate | `.coveragerc` + `--cov-fail-under=50` | `backend` |
+| Backend integration (testcontainers + real Mongo) | [backend/tests/integration/](backend/tests/integration/) | `integration` |
+| Frontend unit (vitest) | [frontend/src/**/__tests__/](frontend/src/) | `frontend-unit` |
+| E2E (Playwright vs docker-compose) | [frontend/tests/e2e/](frontend/tests/e2e/) | `e2e` |
+| RAG eval smoke | [backend/evals/](backend/evals/) | `evals-smoke` |
+| RAG eval nightly | same | scheduled workflow |
+
+Runbook entries for common ops tasks (restart a stuck ingest, drain the DLQ, inspect Celery queues) live in [RUNBOOK.md](RUNBOOK.md).
+
+---
+
+## Tech stack
+
+| Layer | Technology |
+|---|---|
+| Frontend | React 19, Vite, Tailwind, React Router |
+| Backend | Flask 3, Python 3.12, gunicorn |
+| Embeddings | `sentence-transformers` (all-MiniLM-L6-v2) |
+| Vector search | FAISS HNSW (default) or Qdrant |
+| Lexical search | BM25 (rank-bm25) fused with dense via Reciprocal Rank Fusion |
+| LLM | OpenAI `gpt-4o-mini` (configurable) |
+| Auth | JWT (PyJWT), bcrypt, Google OAuth |
+| Primary DB | MongoDB 7 |
+| Cache / broker | Redis 7 |
+| Async jobs | Celery 5 |
+| Object storage | local disk, S3, or MinIO |
+| Billing | Stripe Checkout (test mode) |
+| Tracing | OpenTelemetry + Jaeger |
+| Metrics | Prometheus + Grafana |
+| Logs | structlog (JSON) |
 
 ---
 
 ## Configuration
 
-Key settings in [backend/rag/config.py](backend/rag/config.py):
+Settings resolve through [backend/settings.py](backend/settings.py). A minimal dev `.env`:
 
-| Parameter              | Default          | Description                 |
-| ---------------------- | ---------------- | --------------------------- |
-| `EMBEDDING_MODEL_NAME` | all-MiniLM-L6-v2 | Sentence transformer model  |
-| `CHUNK_SIZE`           | 400              | Characters per chunk        |
-| `CHUNK_OVERLAP`        | 50               | Overlap between chunks      |
-| `TOP_K`                | 10               | Initial retrieval count     |
-| `RERANK_TOP_K`         | 3                | Final context chunks        |
-| `LLM_MODEL_NAME`       | gpt-4.1-mini     | OpenAI model for generation |
+```env
+OPENAI_API_KEY=sk-...
+MONGODB_URI=mongodb://localhost:27017
+JWT_SECRET=change-me
+CORS_ALLOWED_ORIGINS=http://localhost:5173
+```
 
----
-
-## Design Decisions
-
-- **FAISS over cloud vector DBs** – Chosen for simplicity and zero additional infrastructure cost; suitable for small-to-medium document sets
-- **Sentence Transformers** – Local embeddings avoid API costs and provide fast encoding
-- **Chunk overlap** – Prevents context loss at chunk boundaries
-- **Source citations** – LLM is prompted to cite sources, improving answer traceability
-- **Credit system** – Enables usage metering for potential monetization
+Tunable RAG knobs live in [backend/rag/config.py](backend/rag/config.py): chunk size / overlap, top-K, rerank-K, model name.
 
 ---
 
-## Future Improvements
+## API
 
-- [ ] Add streaming responses for real-time answer generation
-- [ ] Implement batch document ingestion
-- [ ] Add support for more file formats (Markdown, HTML)
-- [ ] Switch to persistent vector DB (Pinecone/Weaviate) for larger scale
-- [ ] Add conversation memory for multi-turn context
-- [ ] Implement rate limiting and abuse prevention
-- [ ] Add unit and integration tests
+Full schema in [backend/docs/API.md](backend/docs/API.md). Versioned under `/api/v1/`:
 
----
-
-## Supported File Types
-
-| Format     | Extensions              |
-| ---------- | ----------------------- |
-| Text       | `.txt`                  |
-| PDF        | `.pdf`                  |
-| Word       | `.doc`, `.docx`         |
-| Excel      | `.xlsx`, `.xls`, `.csv` |
-| PowerPoint | `.ppt`, `.pptx`         |
-
-Maximum file size: **16MB**
-
----
-
-## License
-
-MIT License
+| Method | Path | Notes |
+|---|---|---|
+| POST | `/api/v1/auth/register` | email + password |
+| POST | `/api/v1/auth/login` | email + password |
+| POST | `/api/v1/auth/google` | Google OAuth access token |
+| GET | `/api/v1/auth/verify` | token → current user |
+| POST | `/api/v1/chat` | ask (text only) |
+| POST | `/api/v1/chat/upload` | ask + upload files in one turn |
+| POST | `/api/v1/upload` | upload only |
+| GET / DELETE | `/api/v1/documents[/<id>]` | user's docs |
+| POST | `/api/v1/feedback` | thumbs up / down / clear |
+| GET | `/api/v1/billing/plans` | plan metadata |
+| POST | `/api/v1/billing/create-checkout-session` | Stripe Checkout |
+| POST | `/api/v1/billing/webhook` | Stripe → server |
+| GET | `/api/v1/health` | liveness |
+| GET | `/metrics` | Prometheus |
 
 ---
 
 ## Contributing
 
-Contributions are welcome! Please open an issue or submit a pull request.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for dev setup, lint/test commands, and commit conventions.
+
+---
+
+## License
+
+MIT — see [LICENSE](LICENSE).

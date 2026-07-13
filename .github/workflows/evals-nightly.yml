@@ -1,0 +1,59 @@
+name: Evals (nightly)
+
+# Runs the full 30-question RAG eval plus LLM-as-judge nightly. The smoke
+# subset on PRs gates the retrieval metric; this nightly job establishes
+# the full picture (including LLM judge) and is what we quote in the
+# README's "Retrieval Quality" table.
+
+on:
+  schedule:
+    - cron: "17 3 * * *" # 03:17 UTC nightly
+  workflow_dispatch: {} # allow manual kick-off from the Actions tab
+
+jobs:
+  evals:
+    name: evals (full + judge)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Cache sentence-transformers model
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: hf-minilm-l6-v2-v1
+
+      - name: Run eval (full + LLM judge)
+        env:
+          APP_ENV: test
+          JWT_SECRET: nightly-only-do-not-use
+          # Requires a real key for the judge pass; retrieval metrics also
+          # run (and are reported even if the judge step can't reach OpenAI).
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          RERANK_DISABLE: "1"
+          TOKENIZERS_PARALLELISM: "false"
+          MONGODB_URI: mongodb://localhost:27017
+        run: python -m evals.run --judge
+
+      - name: Upload eval results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: evals-nightly-results
+          path: backend/evals/results
+          retention-days: 60

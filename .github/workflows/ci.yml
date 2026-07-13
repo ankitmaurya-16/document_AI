@@ -1,0 +1,319 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  backend:
+    name: backend (lint + test)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-cov ruff mongomock bandit pip-audit
+
+      - name: Ruff
+        run: ruff check . --exclude data --exclude __pycache__
+
+      - name: Bandit (security lint)
+        # B101 (assert) is noisy in test files; B404/B603 flag subprocess use we trust.
+        run: bandit -r . -ll --exclude ./data,./__pycache__,./tests
+
+      - name: pip-audit (dependency CVEs)
+        # Don't break the build on every CVE — surface them as warnings until
+        # we've triaged the existing surface area. Tighten in a follow-up.
+        run: pip-audit --strict || true
+
+      - name: Pytest
+        env:
+          APP_ENV: test
+          JWT_SECRET: ci-only-secret-do-not-use-in-prod
+          OPENAI_API_KEY: sk-test-ci
+          MONGODB_URI: mongodb://localhost:27017
+          CORS_ALLOWED_ORIGINS: http://localhost:5173
+          RERANK_DISABLE: "1"
+          TOKENIZERS_PARALLELISM: "false"
+        run: pytest -q --maxfail=1 --cov=. --cov-config=.coveragerc --cov-report=term-missing --cov-report=xml --cov-fail-under=50
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage
+          path: backend/coverage.xml
+          retention-days: 14
+
+  evals-smoke:
+    name: evals (retrieval smoke)
+    runs-on: ubuntu-latest
+    needs: backend
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Cache sentence-transformers model
+        # all-MiniLM-L6-v2 is ~90MB; caching it keeps the smoke job under a minute.
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: hf-minilm-l6-v2-v1
+
+      - name: Smoke eval (5 rows, retrieval-only, baseline gate)
+        env:
+          APP_ENV: test
+          JWT_SECRET: ci-only-secret-do-not-use-in-prod
+          OPENAI_API_KEY: sk-test-ci
+          RERANK_DISABLE: "1"
+          TOKENIZERS_PARALLELISM: "false"
+          MONGODB_URI: mongodb://localhost:27017
+        run: python -m evals.run --smoke --baseline-check
+
+      - name: Upload eval results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: evals-smoke-results
+          path: backend/evals/results
+          retention-days: 14
+
+  frontend:
+    name: frontend (lint + build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install deps
+        run: npm ci --no-audit --no-fund
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        env:
+          VITE_API_URL: /api
+        run: npm run build
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: frontend/dist
+          retention-days: 3
+
+  integration:
+    name: backend (integration / testcontainers)
+    runs-on: ubuntu-latest
+    needs: backend
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-cov
+
+      - name: Integration tests
+        env:
+          APP_ENV: test
+          JWT_SECRET: ci-only-secret-do-not-use-in-prod
+          OPENAI_API_KEY: sk-test-ci
+          RERANK_DISABLE: "1"
+          TOKENIZERS_PARALLELISM: "false"
+          CORS_ALLOWED_ORIGINS: http://localhost:5173
+          TESTCONTAINERS_RYUK_DISABLED: "true"
+        run: pytest -m integration tests/integration -q --maxfail=1
+
+  frontend-unit:
+    name: frontend (unit tests)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install deps
+        run: npm ci --no-audit --no-fund
+
+      - name: Vitest
+        run: npm test
+
+  e2e:
+    name: e2e (playwright via docker-compose)
+    runs-on: ubuntu-latest
+    needs: [backend, frontend]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Write .env.docker for the stack
+        run: |
+          cat > .env.docker <<'EOF'
+          APP_ENV=test
+          JWT_SECRET=e2e-ci-secret
+          OPENAI_API_KEY=sk-test-ci-not-real
+          CORS_ALLOWED_ORIGINS=http://localhost:5173
+          RERANK_DISABLE=1
+          TOKENIZERS_PARALLELISM=false
+          EOF
+
+      - name: Start stack (mongo + redis + backend + frontend)
+        run: docker compose up -d --build mongo redis backend frontend
+
+      - name: Wait for backend health
+        run: |
+          for i in {1..40}; do
+            if curl -fsS http://localhost:5173/api/v1/health; then
+              echo " — healthy"; exit 0
+            fi
+            sleep 3
+          done
+          echo "stack did not come up in time"
+          docker compose logs --tail=200
+          exit 1
+
+      - name: Install frontend deps + Playwright browsers
+        working-directory: frontend
+        run: |
+          npm ci --no-audit --no-fund
+          npx playwright install --with-deps chromium
+
+      - name: Run Playwright
+        working-directory: frontend
+        env:
+          E2E_BASE_URL: http://localhost:5173
+        run: npx playwright test
+
+      - name: Collect docker logs on failure
+        if: failure()
+        run: docker compose logs --tail=500 > docker-compose.log || true
+
+      - name: Upload Playwright HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: frontend/playwright-report
+          retention-days: 14
+
+      - name: Upload docker logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-compose-logs
+          path: docker-compose.log
+          retention-days: 7
+
+      - name: Tear down
+        if: always()
+        run: docker compose down -v
+
+  docker:
+    name: docker (build only)
+    runs-on: ubuntu-latest
+    needs: [backend, frontend]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build backend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: false
+          tags: docai-backend:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build frontend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          push: false
+          tags: docai-frontend:ci
+          build-args: |
+            VITE_API_URL=/api
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  security-scan:
+    name: security (trivy fs)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Trivy filesystem scan
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          # Fail only on HIGH/CRITICAL so noisy LOW/MEDIUM doesn't block PRs.
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "0"  # report-only for now; flip to "1" once findings are clean
