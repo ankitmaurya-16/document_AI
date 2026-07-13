@@ -1,23 +1,23 @@
-flask==3.0.0
+flask==3.1.3
 flask-cors==4.0.0
 flask-limiter==3.8.0
-pydantic[email]==2.7.4
+pydantic[email]==2.13.4
 structlog==24.1.0
 openai==1.12.0
-httpx==0.27.2  # openai 1.12 breaks with httpx>=0.28 (removed `proxies` arg)
+httpx==0.28.1  # openai 1.12 breaks with httpx>=0.28 (removed `proxies` arg)
 sentence-transformers==2.3.1
-faiss-cpu==1.9.0.post1
+faiss-cpu==1.14.3
 PyPDF2==3.0.1
-python-docx==1.1.0
+python-docx==1.2.0
 pandas==2.1.4
-openpyxl==3.1.2
+openpyxl==3.1.5
 python-pptx==0.6.23
-python-dotenv==1.0.0
-google-auth==2.27.0
-requests==2.31.0
+python-dotenv==1.2.2
+google-auth==2.55.2
+requests==2.34.2
 numpy>=1.26.0
-pymongo==4.6.1
-PyJWT==2.8.0
+pymongo==4.17.0
+PyJWT==2.13.0
 bcrypt==4.1.2
 
 # Hybrid retrieval
@@ -28,34 +28,34 @@ sentry-sdk[flask]==1.45.0
 
 # Optional — enabled via REDIS_URL / ASYNC_MODE=celery
 redis==5.0.4
-celery[redis]==5.3.6
+celery[redis]==5.6.3
 
 # Optional — Stripe test-mode checkout
 stripe==8.8.0
 
 # Optional — Qdrant vector backend. Selected when QDRANT_URL is set;
 # falls back to FAISS otherwise so local/test runs don't need the server.
-qdrant-client==1.9.0
+qdrant-client==1.18.0
 
 # Optional — S3 / MinIO object storage. Selected when S3_ENDPOINT or
 # AWS creds are present; raw uploads fall back to local disk otherwise.
-boto3==1.34.69
+boto3==1.43.46
 
 # Reliability: tenacity wraps every external call (OpenAI, Stripe, Qdrant, S3)
 # with bounded exponential backoff + a retry counter.
 tenacity==8.5.0
 
 # Observability. Prometheus is always wired (cheap; exposes /metrics).
-prometheus-client==0.20.0
-prometheus-flask-exporter==0.23.0
+prometheus-client==0.25.0
+prometheus-flask-exporter==0.23.2
 # OpenTelemetry only initializes when OTEL_EXPORTER_OTLP_ENDPOINT is set.
-opentelemetry-api==1.25.0
-opentelemetry-sdk==1.25.0
-opentelemetry-exporter-otlp-proto-http==1.25.0
-opentelemetry-instrumentation-flask==0.46b0
-opentelemetry-instrumentation-requests==0.46b0
-opentelemetry-instrumentation-pymongo==0.46b0
-opentelemetry-instrumentation-redis==0.46b0
+opentelemetry-api==1.43.0
+opentelemetry-sdk==1.43.0
+opentelemetry-exporter-otlp-proto-http==1.43.0
+opentelemetry-instrumentation-flask==0.64b0
+opentelemetry-instrumentation-requests==0.64b0
+opentelemetry-instrumentation-pymongo==0.64b0
+opentelemetry-instrumentation-redis==0.64b0
 
 # Integration tests spin up a real Mongo via Docker.
-testcontainers[mongodb]==4.7.2
+testcontainers[mongodb]==4.14.2
