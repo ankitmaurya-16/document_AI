@@ -4,8 +4,9 @@ flask-limiter==3.8.0
 pydantic[email]==2.7.4
 structlog==24.1.0
 openai==1.12.0
+httpx==0.27.2  # openai 1.12 breaks with httpx>=0.28 (removed `proxies` arg)
 sentence-transformers==2.3.1
-faiss-cpu==1.8.0
+faiss-cpu==1.9.0.post1
 PyPDF2==3.0.1
 python-docx==1.1.0
 pandas==2.1.4
@@ -19,33 +20,32 @@ pymongo==4.6.1
 PyJWT==2.8.0
 bcrypt==4.1.2
 
-# Hybrid retrieval (Phase 2)
+# Hybrid retrieval
 rank-bm25==0.2.2
 
 # Optional — enabled via SENTRY_DSN
 sentry-sdk[flask]==1.45.0
 
-# Optional — enabled via REDIS_URL / ASYNC_MODE=celery (Phase 2)
+# Optional — enabled via REDIS_URL / ASYNC_MODE=celery
 redis==5.0.4
 celery[redis]==5.3.6
 
-# Optional — Stripe test-mode checkout (Wave B)
+# Optional — Stripe test-mode checkout
 stripe==8.8.0
 
-# Optional — Qdrant vector backend (Wave C). Selected when QDRANT_URL is set;
+# Optional — Qdrant vector backend. Selected when QDRANT_URL is set;
 # falls back to FAISS otherwise so local/test runs don't need the server.
 qdrant-client==1.9.0
 
-# Optional — S3 / MinIO object storage (Wave C). Selected when S3_ENDPOINT or
+# Optional — S3 / MinIO object storage. Selected when S3_ENDPOINT or
 # AWS creds are present; raw uploads fall back to local disk otherwise.
 boto3==1.34.69
 
-# Wave F — Reliability. tenacity wraps every external call (OpenAI, Stripe,
-# Qdrant, S3) with bounded exponential backoff + a retry counter.
+# Reliability: tenacity wraps every external call (OpenAI, Stripe, Qdrant, S3)
+# with bounded exponential backoff + a retry counter.
 tenacity==8.5.0
 
-# Wave D — Observability.
-# Prometheus is always wired (cheap; exposes /metrics).
+# Observability. Prometheus is always wired (cheap; exposes /metrics).
 prometheus-client==0.20.0
 prometheus-flask-exporter==0.23.0
 # OpenTelemetry only initializes when OTEL_EXPORTER_OTLP_ENDPOINT is set.
@@ -57,5 +57,5 @@ opentelemetry-instrumentation-requests==0.46b0
 opentelemetry-instrumentation-pymongo==0.46b0
 opentelemetry-instrumentation-redis==0.46b0
 
-# Wave H — Integration tests spin up a real Mongo via Docker.
+# Integration tests spin up a real Mongo via Docker.
 testcontainers[mongodb]==4.7.2

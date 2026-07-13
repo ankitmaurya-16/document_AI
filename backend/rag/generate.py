@@ -22,13 +22,20 @@ load_dotenv()
 
 log = get_logger("generate")
 
+# Generation is provider-agnostic: any OpenAI-compatible endpoint works via
+# OPENAI_BASE_URL (e.g. Groq, Gemini, a local Ollama). Defaults to OpenAI.
+_DEFAULT_MODEL = os.getenv("LLM_MODEL", "gpt-4o-mini")
+
 _client: OpenAI | None = None
 
 
 def _openai() -> OpenAI:
     global _client
     if _client is None:
-        _client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        _client = OpenAI(
+            api_key=os.getenv("OPENAI_API_KEY"),
+            base_url=os.getenv("OPENAI_BASE_URL") or None,
+        )
     return _client
 
 
@@ -82,7 +89,7 @@ def generate_answer(
     question: str,
     context_chunks: List[Dict],
     history: List[Dict] | None = None,
-    model: str = "gpt-4o-mini",
+    model: str = _DEFAULT_MODEL,
     temperature: float = 0.0,
 ) -> str:
     messages = build_messages(question, context_chunks, history=history)
@@ -103,7 +110,7 @@ def generate_answer_stream(
     question: str,
     context_chunks: List[Dict],
     history: List[Dict] | None = None,
-    model: str = "gpt-4o-mini",
+    model: str = _DEFAULT_MODEL,
     temperature: float = 0.0,
 ) -> Generator[str, None, None]:
     """Yield response token deltas as they arrive from OpenAI."""
