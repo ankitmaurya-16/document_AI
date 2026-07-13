@@ -27,5 +27,6 @@ backend/data/
 playwright-report/
 test-results/
 
-# Personal notes — never publish
-INTERVIEW_PREP.md
+RUNBOOK.md
+SECURITY.md
+CONTRIBUTING.md
