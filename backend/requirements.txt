@@ -1,6 +1,6 @@
 flask==3.0.0
 flask-cors==4.0.0
-flask-limiter==3.8.0
+flask-limiter==4.1.1
 pydantic[email]==2.7.4
 structlog==24.1.0
 openai==1.12.0
