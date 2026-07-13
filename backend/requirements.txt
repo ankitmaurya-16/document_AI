@@ -18,7 +18,7 @@ requests==2.31.0
 numpy>=1.26.0
 pymongo==4.6.1
 PyJWT==2.8.0
-bcrypt==4.1.2
+bcrypt==5.0.0
 
 # Hybrid retrieval
 rank-bm25==0.2.2
