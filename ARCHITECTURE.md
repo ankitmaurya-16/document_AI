@@ -9,11 +9,11 @@ C4Context
     title DocAI — System Context
     Person(user, "End user", "Uploads docs, asks questions")
     System(docai, "DocAI", "RAG Q&A over user-uploaded documents")
-    System_Ext(openai, "OpenAI", "LLM + embeddings (optional)")
+    System_Ext(openai, "OpenAI", "LLM generation (any OpenAI-compatible endpoint)")
     System_Ext(stripe, "Stripe", "Test-mode billing")
     System_Ext(google, "Google OAuth", "Optional SSO")
     Rel(user, docai, "HTTPS, browser")
-    Rel(docai, openai, "chat.completions + embeddings (retried)")
+    Rel(docai, openai, "chat.completions (retried)")
     Rel(docai, stripe, "checkout + webhooks (retried, idempotent)")
     Rel(docai, google, "OAuth token exchange")
 ```
@@ -27,7 +27,7 @@ C4Container
     System_Boundary(app, "DocAI") {
         Container(nginx, "Nginx (frontend)", "Nginx + Vite build", "Serves SPA; proxies /api → backend")
         Container(backend, "Flask API", "Python 3.12, gunicorn", "Auth, chat, upload, billing, metrics")
-        Container(worker, "Celery worker", "Python 3.12", "Async ingest + embedding")
+        Container(worker, "Celery worker", "Python 3.12", "Async ingest + local embedding (all-MiniLM-L6-v2)")
         ContainerDb(mongo, "MongoDB", "7.0", "Users, chats, documents, feedback, processed_events, failed_ingests")
         ContainerDb(redis, "Redis", "7-alpine", "Celery broker, rate-limit store, cache")
         ContainerDb(vectors, "Vector index", "FAISS (default) / Qdrant", "HNSW dense index per-user namespace")
@@ -50,7 +50,6 @@ C4Container
     Rel(worker, mongo, "records ingest state")
     Rel(worker, vectors, "upsert chunks")
     Rel(worker, blobs, "read raw files")
-    Rel(worker, openai, "embeddings (retried)")
     Rel(backend, prom, "/metrics (pulled)")
     Rel(backend, jaeger, "OTLP/HTTP (pushed)")
     Rel(worker, jaeger, "OTLP/HTTP (pushed)")
@@ -73,6 +72,7 @@ sequenceDiagram
     N->>F: proxy
     F->>F: JWT verify + rate-limit check
     F->>M: load chat history
+    F->>F: embed query locally (all-MiniLM-L6-v2)
     F->>V: hybrid retrieve (FAISS + BM25, RRF fused)
     F->>F: rerank (optional cross-encoder)
     F->>O: chat.completions (tenacity: 3 tries, expo backoff, 30 s)
@@ -97,15 +97,16 @@ sequenceDiagram
 
     U->>F: POST /api/v1/upload (multipart)
     F->>S: put raw bytes
-    F->>M: documents doc (status=queued)
-    F->>R: enqueue ingest task
-    F-->>U: 202 accepted
+    F->>M: documents row (filename, size, rawPath)
+    F->>R: enqueue ingest task (job state → Redis)
+    F-->>U: 202 accepted + jobId
     W->>R: dequeue
     W->>S: read raw file
     W->>W: parse + chunk
-    W->>O: embed chunks (retried)
+    W->>W: embed chunks locally (all-MiniLM-L6-v2)
     W->>V: upsert vectors (retried)
-    W->>M: documents.status=ready  (or insert failed_ingests on exhaustion)
+    W->>R: job state = succeeded (polled at /chat/jobs/:id)
+    W->>M: insert failed_ingests on final failure
 ```
 
 ## Data model (selected collections)
@@ -114,10 +115,10 @@ sequenceDiagram
 |---|---|---|
 | `users` | `email` unique | Auth + credits |
 | `chats` | `userId`, `updatedAt` | Conversation threads |
-| `documents` | `userId`, `status` | Per-user upload registry |
-| `feedback` | `{chatId,messageTimestamp}` unique | Thumbs up/down per message |
+| `documents` | `{userId, uploadedAt}` | Per-user upload registry (no status field yet — job state lives in Redis) |
+| `feedback` | `{chatId, messageTimestamp}`, `userId` | Thumbs up/down per message |
 | `processed_events` | `event_id` unique, `receivedAt` TTL 30 d | Stripe webhook idempotency |
-| `failed_ingests` | `userId`, `createdAt` | Celery DLQ |
+| `failed_ingests` | none yet — add `user_id` | Celery DLQ (`job_id`, `user_id`, `error`, `error_type`, `failed_at`) |
 
 ## Boundaries where retries / idempotency live
 
@@ -155,7 +156,7 @@ graph LR
     W1 --> QC
 ```
 
-Current deploy is local `docker compose` only; Wave I hosted deploy is tracked in [docs/roadmap.md](docs/roadmap.md).
+Current deploy is local `docker compose` only; the topology above is the intended target, not a running system.
 
 ## See also
 
@@ -164,4 +165,5 @@ Current deploy is local `docker compose` only; Wave I hosted deploy is tracked i
 - [docs/adr/0003-async-framework.md](docs/adr/0003-async-framework.md) — Celery vs RQ vs asyncio
 - [docs/adr/0004-web-framework.md](docs/adr/0004-web-framework.md) — Flask vs FastAPI
 - [RUNBOOK.md](RUNBOOK.md) — operational playbooks
+- [CONTRIBUTING.md](CONTRIBUTING.md) — dev setup, test + lint commands
 - [SECURITY.md](SECURITY.md) — threat model + disclosure
