@@ -4,11 +4,25 @@ import { test, expect } from "@playwright/test";
 // The backend is real but LLM calls are short-circuited by a test API key,
 // so we stay within the auth + navigation surface.
 
-// A fresh email per run keeps the test hermetic even against a persistent Mongo.
-const email = `e2e+${Date.now()}@example.com`;
 const password = "correct-horse-battery-staple";
 
-test.describe.configure({ mode: "serial" });
+// timeout: the first request into a cold worker can pay for the embedding model
+// load (rag/retrieve.py builds SentenceTransformer at import, gunicorn runs
+// several workers with no preload, and this job caches no HuggingFace data),
+// which can outrun the 30s default. Only the patience changes here — every
+// assertion below is unchanged.
+test.describe.configure({ mode: "serial", timeout: 90_000 });
+
+// A fresh email per attempt keeps the test hermetic against a persistent Mongo.
+// This must be regenerated in beforeAll rather than at module scope: on a retry
+// the module-level value would already be registered by the failed attempt, so
+// sign-up would fail with "email already exists" and the retry could never pass.
+// In serial mode beforeAll re-runs with the group, so tests 2 and 3 still share
+// the address that test 1 registered.
+let email;
+test.beforeAll(() => {
+  email = `e2e+${Date.now()}-${Math.random().toString(36).slice(2, 8)}@example.com`;
+});
 
 test("registers a new account from the sign-up form", async ({ page }) => {
   await page.goto("/login");
@@ -26,7 +40,19 @@ test("registers a new account from the sign-up form", async ({ page }) => {
   await page.getByRole("button", { name: /^sign up$/i }).click();
 
   // Landing on "/" means AppContext successfully set the token and navigated.
-  await page.waitForURL("/");
+  // Poll for navigation *or* the inline error, so a rejected sign-up reports the
+  // backend's message instead of an unexplained 30s waitForURL timeout.
+  await expect
+    .poll(
+      async () => {
+        if (new URL(page.url()).pathname === "/") return "navigated";
+        const err = page.locator("p.text-red-500");
+        if (await err.isVisible()) return `sign-up rejected: ${await err.innerText()}`;
+        return "pending";
+      },
+      { timeout: 60_000, message: "sign-up did not navigate to /" }
+    )
+    .toBe("navigated");
   // Token should be persisted for the next test in the serial group.
   const token = await page.evaluate(() => localStorage.getItem("token"));
   expect(token).toBeTruthy();
