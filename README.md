@@ -1,20 +1,15 @@
-# DocAI — Production-grade Document Q&A with RAG
+# DocAI — Document Q&A with RAG
 
-A full-stack Retrieval-Augmented Generation system: upload documents, ask natural-language questions, get answers with source citations. Built end-to-end with the discipline of a production service — structured logging, distributed tracing, Prometheus metrics, bounded retries on every external call, a scored evaluation harness for retrieval quality, integration tests against real datastores, and a security-linted CI pipeline.
-
-This repo is designed as a portfolio project. Every Wave A–H item described in [docs/roadmap.md](docs/roadmap.md) is implemented in this tree.
-
-<!-- Badges: CI / coverage once the repo is pushed to GitHub -->
-<!-- ![CI](https://github.com/<user>/<repo>/actions/workflows/ci.yml/badge.svg) -->
+A full-stack Retrieval-Augmented Generation system: upload documents, ask natural-language questions, get answers with source citations. Built with the operational practices a real service needs — structured logging, distributed tracing, Prometheus metrics, bounded retries on every external call, a scored evaluation harness for retrieval quality, integration tests against real datastores, and a security-linted CI pipeline.
 
 ---
 
 ## Highlights
 
-- **RAG pipeline** — hybrid retrieval (FAISS HNSW + BM25 fused via RRF), optional cross-encoder reranker, context-packed generation with inline source citations
+- **RAG pipeline** — hybrid retrieval (FAISS HNSW + BM25 fused via RRF), optional cross-encoder reranker, inline source citations
 - **Auth** — JWT + bcrypt, Google OAuth, per-route rate limiting
 - **Storage** — MongoDB for chats / users / feedback / documents, optional Qdrant for vectors, optional S3/MinIO for raw files
-- **Async ingestion** — Celery + Redis workers; retries with exponential backoff; failed jobs land in a dead-letter collection
+- **Async ingestion** — opt-in via `ASYNC_MODE=celery`; Celery + Redis workers, retries with exponential backoff, failed jobs land in a dead-letter collection
 - **Billing** — Stripe Checkout (test mode); webhook is idempotent by `event_id` so retries never double-credit
 - **Observability** — OpenTelemetry traces → Jaeger, `/metrics` for Prometheus, a provisioned Grafana dashboard
 - **Reliability** — `tenacity` retries + timeouts on every OpenAI / Stripe / Qdrant / S3 call, security-headers middleware, PII-redacting log processor, graceful shutdown in gunicorn + Celery
@@ -25,7 +20,7 @@ This repo is designed as a portfolio project. Every Wave A–H item described in
 
 ## Live demo
 
-Not hosted yet. Planned — see [docs/adr/](docs/adr/). Until then, run locally with `docker compose up --build`.
+Not hosted yet — run it locally with `docker compose up --build`. The intended cloud topology is sketched in [ARCHITECTURE.md](ARCHITECTURE.md) § Deployment topology.
 
 ---
 
@@ -55,7 +50,7 @@ docker compose --profile minio up             # swap local disk → S3-compatibl
 
 ## Architecture
 
-High-level container diagram in [ARCHITECTURE.md](ARCHITECTURE.md). Four architectural decisions are captured in [docs/adr/](docs/adr/): vector store choice, object store choice, async framework, web framework.
+C4 context + container diagrams and request-path sequence diagrams are in [ARCHITECTURE.md](ARCHITECTURE.md). Four architectural decisions are captured in [docs/adr/](docs/adr/): vector store choice, object store choice, async framework, web framework.
 
 ```
 browser ──► Nginx (frontend) ──► Flask (backend) ──► Mongo
@@ -79,7 +74,7 @@ python -m evals.run                 # full run with LLM-as-judge
 python -m evals.run --smoke          # 5 questions, retrieval only
 ```
 
-The CI `evals-smoke` job runs a 5-question subset on every PR against a committed baseline ([backend/evals/baseline.json](backend/evals/baseline.json)). If Recall@5 drops more than 0.05, the job fails. A nightly workflow runs the full scored eval and uploads results as an artifact.
+The CI `evals-smoke` job runs a 5-question subset on every PR and compares Recall@5 against [backend/evals/baseline.json](backend/evals/baseline.json); a drop of more than 0.05 fails the job. That baseline is still a hand-set placeholder (0.80) — it needs replacing with the median of a few nightly runs before the gate means much. The nightly workflow runs the full 30-question scored eval and uploads results as an artifact.
 
 Methodology, scoring rubric, and the LLM-judge prompt are documented in [backend/evals/README.md](backend/evals/README.md).
 
@@ -91,7 +86,7 @@ Every external call is wrapped with bounded exponential backoff via `tenacity` (
 
 | Failure mode | How it's handled | Where |
 |---|---|---|
-| OpenAI API transient error | 3 attempts, expo backoff, 30 s cap | [backend/rag/generate.py](backend/rag/generate.py) |
+| OpenAI API transient error | 3 attempts, expo backoff capped at 10 s, 30 s request timeout | [backend/rag/generate.py](backend/rag/generate.py) |
 | Stripe 5xx / rate-limit | `with_retry("stripe")` on `checkout.Session.create` | [backend/routes/v1/billing.py](backend/routes/v1/billing.py) |
 | Qdrant network hiccup | retry wrapper on upsert / search | [backend/rag/vector_store.py](backend/rag/vector_store.py) |
 | S3 / MinIO boto3 errors | boto3 `standard` retry mode | [backend/storage.py](backend/storage.py) |
@@ -115,8 +110,8 @@ A `docai_external_retry_total{service}` counter in [backend/metrics.py](backend/
 
 - **Headers** — CSP, HSTS, X-Frame-Options: DENY, X-Content-Type-Options, Referrer-Policy, Permissions-Policy via [backend/middleware/security.py](backend/middleware/security.py).
 - **Auth** — JWT signed with `JWT_SECRET`; bcrypt password hashing; Google OAuth token exchange server-side.
-- **Rate limits** — per-route limits in [backend/extensions.py](backend/extensions.py) (auth / chat / upload / default). Redis-backed in prod.
-- **Upload hardening** — MIME sniffing, extension allow-list, size cap, per-user storage quota.
+- **Rate limits** — per-route limits in [backend/extensions.py](backend/extensions.py) (auth 10/min, chat 30/min, upload 10/min, default 200/hour), keyed on user id when authenticated and IP otherwise. Storage defaults to `memory://`, which is per-process — set `RATELIMIT_STORAGE_URI` to Redis before running multiple workers.
+- **Upload hardening** — magic-byte sniffing, extension allow-list, per-file size cap, per-user storage quota. Malware scanning is a no-op hook (`scan_for_malware`) pending a ClamAV daemon.
 - **PII redaction** — log processor regex-redacts emails, bearer tokens, and card-number-shaped digits before the JSON renderer.
 - **Supply chain** — Dependabot ([.github/dependabot.yml](.github/dependabot.yml)), bandit security lint, pip-audit for CVEs, trivy filesystem scan in CI.
 - **Threat model + disclosure** — [SECURITY.md](SECURITY.md).
@@ -172,7 +167,7 @@ JWT_SECRET=change-me
 CORS_ALLOWED_ORIGINS=http://localhost:5173
 ```
 
-Tunable RAG knobs live in [backend/rag/config.py](backend/rag/config.py): chunk size / overlap, top-K, rerank-K, model name.
+Tunable RAG knobs live in [backend/rag/config.py](backend/rag/config.py): chunk size (400) / overlap (50), top-K, embedding model. It is imported as bare `config` because `backend/rag` is placed on `sys.path` at boot — a wart worth cleaning up.
 
 ---
 
