@@ -18,7 +18,9 @@ test("registers a new account from the sign-up form", async ({ page }) => {
 
   await page.getByPlaceholder("Full Name").fill("E2E User");
   await page.getByPlaceholder("Email id").fill(email);
-  await page.getByPlaceholder("Password").fill(password);
+  // getByPlaceholder matches by substring, so "Password" also matches the
+  // "Confirm Password" field — exact is required to disambiguate them.
+  await page.getByPlaceholder("Password", { exact: true }).fill(password);
   await page.getByPlaceholder("Confirm Password").fill(password);
 
   await page.getByRole("button", { name: /^sign up$/i }).click();
@@ -38,7 +40,7 @@ test("logs out and signs back in with the same credentials", async ({ page, cont
   await page.reload();
 
   await page.getByPlaceholder("Email id").fill(email);
-  await page.getByPlaceholder("Password").fill(password);
+  await page.getByPlaceholder("Password", { exact: true }).fill(password);
   await page.getByRole("button", { name: /^login$/i }).click();
 
   await page.waitForURL("/");
@@ -53,7 +55,7 @@ test("rejects a bad password with an inline error", async ({ page, context }) =>
   await page.reload();
 
   await page.getByPlaceholder("Email id").fill(email);
-  await page.getByPlaceholder("Password").fill("definitely-wrong");
+  await page.getByPlaceholder("Password", { exact: true }).fill("definitely-wrong");
   await page.getByRole("button", { name: /^login$/i }).click();
 
   // We should stay on /login and surface an error. The exact copy comes from

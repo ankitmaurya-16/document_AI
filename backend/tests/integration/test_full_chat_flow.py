@@ -73,9 +73,15 @@ def test_document_delete_denies_cross_user(client, registered_user, mongo_db):
 
 
 def test_auth_required_on_protected_routes(client):
-    # No token → 401 across the board.
+    # No token → 401 on the routes that own user data.
     assert client.get("/api/v1/documents").status_code == 401
-    assert client.post("/api/v1/chat", json={"prompt": "x"}).status_code == 401
+    # /chat is deliberately anonymous-friendly: the route uses optional_auth()
+    # and guards every persistence/credit path behind `if user_id`. Anonymous
+    # callers get an answer but nothing is stored and no credits are burned.
+    # tests/test_chat.py::test_chat_anonymous_returns_answer asserts the same
+    # 200 — this assertion previously claimed 401 and contradicted it, but the
+    # suite never ran far enough to notice.
+    assert client.post("/api/v1/chat", json={"prompt": "x"}).status_code == 200
     assert client.post(
         "/api/v1/feedback",
         json={"chatId": "c", "messageTimestamp": 1.0, "rating": 1},
