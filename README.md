@@ -1,4 +1,4 @@
-# DocAI — Production-grade Document Q&A with RAG
+# DocAI — Document Q&A with RAG
 
 A full-stack Retrieval-Augmented Generation system: upload documents, ask natural-language questions, get answers with source citations. Built end-to-end with the discipline of a production service — structured logging, distributed tracing, Prometheus metrics, bounded retries on every external call, a scored evaluation harness for retrieval quality, integration tests against real datastores, and a security-linted CI pipeline.
 
