@@ -136,7 +136,8 @@ jobs:
 
       - name: Build
         env:
-          VITE_API_URL: /api
+          # Empty: matches how the image serves this build behind nginx.
+          VITE_API_URL: ""
         run: npm run build
 
       - name: Upload build artifact
@@ -305,7 +306,7 @@ jobs:
           push: false
           tags: docai-frontend:ci
           build-args: |
-            VITE_API_URL=/api
+            VITE_API_URL=
           cache-from: type=gha
           cache-to: type=gha,mode=max
 

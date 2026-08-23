@@ -8,7 +8,11 @@ RUN npm ci --no-audit --no-fund
 
 COPY . .
 
-ARG VITE_API_URL=/api
+# Empty by default: the runtime stage serves this build behind nginx, which
+# proxies /api/ to the backend. Every fetch in src/ already spells out the
+# full /api/v1/... path, so a non-empty prefix here yields /api/api/v1/...
+# and 404s. Dev (vite) falls back to http://localhost:5001 in AppContext.
+ARG VITE_API_URL=
 ARG VITE_GOOGLE_CLIENT_ID
 ARG VITE_STRIPE_PUBLISHABLE_KEY
 ENV VITE_API_URL=$VITE_API_URL \
