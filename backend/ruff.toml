@@ -1,0 +1,19 @@
+# Ruff configuration for the backend.
+#
+# WHY THIS FILE EXISTS: CI previously installed ruff unpinned, so it picked up
+# whatever was newest. Ruff's *default* rule selection has widened over time —
+# 0.6.9 defaults to E4/E7/E9/F, while 0.16.x additionally enables UP, BLE, DTZ,
+# I, S, SIM, RUF, ANN and more by default. That silently turned a 2-error lint
+# into a 280-error one without a single line of source changing, and made CI
+# enforce a different standard than .pre-commit-config.yaml (pinned to v0.6.9).
+#
+# Declaring `select` explicitly means the gate is defined by this file rather
+# than inherited from whichever ruff version happens to be installed. Adopting
+# the wider rule set (pyupgrade, flake8-bugbear, isort, ...) is a deliberate
+# follow-up, not something a tool upgrade should decide for us.
+
+target-version = "py312"
+exclude = ["data", "__pycache__"]
+
+[lint]
+select = ["E4", "E7", "E9", "F"]

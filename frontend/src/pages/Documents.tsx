@@ -23,6 +23,11 @@ const Documents = () => {
   }
 
   useEffect(() => {
+    // Fetch-on-mount keyed by user id, not state synchronisation. There is no
+    // external store to subscribe to, and refresh() sets state only after an
+    // await, so it does not cascade renders synchronously. Revisit if the
+    // document list moves behind a proper data-fetching layer.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     refresh()
   }, [user?._id])
 

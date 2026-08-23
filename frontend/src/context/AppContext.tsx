@@ -120,7 +120,7 @@ export const AppContextProvider=({ children }: { children: ReactNode })=>{
             } else {
                 return { success: false, error: data.error };
             }
-        } catch (error) {
+        } catch {
             return { success: false, error: 'Network error' };
         }
     };
@@ -144,7 +144,7 @@ export const AppContextProvider=({ children }: { children: ReactNode })=>{
             } else {
                 return { success: false, error: data.error };
             }
-        } catch (error) {
+        } catch {
             return { success: false, error: 'Network error' };
         }
     };
@@ -168,7 +168,7 @@ export const AppContextProvider=({ children }: { children: ReactNode })=>{
             } else {
                 return { success: false, error: data.error };
             }
-        } catch (error) {
+        } catch {
             return { success: false, error: 'Network error' };
         }
     };
@@ -362,7 +362,7 @@ export const AppContextProvider=({ children }: { children: ReactNode })=>{
                 return data
             }
             return { error: data.error || 'Checkout unavailable' }
-        } catch (e) {
+        } catch {
             return { error: 'Network error' }
         }
     }
@@ -394,6 +394,11 @@ export const AppContextProvider=({ children }: { children: ReactNode })=>{
         </AppContext.Provider>
     )
 }
+// The provider and its consumer hook are a single unit and ship together by
+// design. Splitting the hook into its own module purely to satisfy Fast
+// Refresh would add indirection for no runtime benefit; the cost is that
+// editing this file does a full reload instead of a hot update.
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAppContext = (): AppContextValue => {
     const ctx = useContext(AppContext)
     if (!ctx) throw new Error("useAppContext must be used inside AppContextProvider")

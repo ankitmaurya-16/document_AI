@@ -25,7 +25,6 @@ import ai_image8 from "./ai_image8.jpg";
 import ai_image9 from "./ai_image9.jpg";
 import ai_image10 from "./ai_image10.jpg";
 import ai_image11 from "./ai_image11.jpg";
-import ai_image12 from "./ai_image12.jpg";
 
 export const assets = {
     logo,
