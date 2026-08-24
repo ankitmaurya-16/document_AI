@@ -19,7 +19,8 @@ A full-stack Retrieval-Augmented Generation system: upload documents, ask natura
 ---
 
 ## Live demo
-<video src="https://github.com/user-attachments/assets/fe85bf3e-4a40-4713-abc4-6f235b80201f" controls width="800"></video>
+
+<video src="https://github.com/user-attachments/assets/6ef67ecc-90b7-4a71-971c-7e50b9c21b34" controls width="800"></video>
 
 Not hosted right now — run it locally with `docker compose up --build`. The intended cloud topology is sketched in [ARCHITECTURE.md](ARCHITECTURE.md) § Deployment topology.
 
@@ -81,19 +82,19 @@ Methodology, scoring rubric, and the LLM-judge prompt are documented in [backend
 
 ### Cache effectiveness
 
-Two layers sit in front of the LLM call in [backend/cache.py](backend/cache.py): an exact layer keyed on a SHA-256 of the normalised query (1 h TTL), and a semantic layer that reuses an answer when the query embedding is within 0.93 cosine of a cached one (30 min TTL). A hit on either skips retrieval *and* generation.
+Two layers sit in front of the LLM call in [backend/cache.py](backend/cache.py): an exact layer keyed on a SHA-256 of the normalised query (1 h TTL), and a semantic layer that reuses an answer when the query embedding is within 0.93 cosine of a cached one (30 min TTL). A hit on either skips retrieval _and_ generation.
 
-| Path | Median latency | LLM prompt tokens | Runs |
-|---|---|---|---|
-| Miss (embed → hybrid retrieve → rerank → LLM) | **1.123 s** | 519 | 12 |
-| Exact-cache hit (identical query) | **0.007 s** | 0 | 7 |
-| Semantic-cache hit (reworded query) | **0.016 s** | 0 | 9 |
+| Path                                          | Median latency | LLM prompt tokens | Runs |
+| --------------------------------------------- | -------------- | ----------------- | ---- |
+| Miss (embed → hybrid retrieve → rerank → LLM) | **1.123 s**    | 519               | 12   |
+| Exact-cache hit (identical query)             | **0.007 s**    | 0                 | 7    |
+| Semantic-cache hit (reworded query)           | **0.016 s**    | 0                 | 9    |
 
 A served hit is ~168× faster than a miss on the exact layer and ~69× on the semantic layer, and costs zero prompt tokens because the provider is never called. Miss latency ranged 0.49–1.67 s; the median is reported.
 
 **Method.** Single user, one 1,434-byte plain-text document indexed into 5 chunks, questions answered against it over HTTP. Each request was classified by diffing the `docai_cache_hit_total{layer}` / `docai_cache_miss_total{layer}` counters on `/metrics` around the call, never by timing, and token counts came from a pass-through proxy recording `usage.prompt_tokens` (the app records none). Reranking enabled, cache backend in-memory (no `REDIS_URL`), LLM `openai/gpt-oss-120b` via Groq. Measured on an Apple M3 (8-core, 8 GB, macOS 26.6.2), Python 3.12.7.
 
-**One caveat worth stating.** At 0.93 the semantic layer only catches near-duplicate phrasings, not genuine paraphrases. Measured against *"How does the platform combine vector search with keyword search?"*: reworded-but-recognisable variants scored 0.977–0.998 and hit, while true paraphrases such as *"How are vector search results and keyword search results fused together?"* (0.892) and *"In what way does the system merge dense retrieval with BM25 keyword search?"* (0.625) fell below the threshold and missed. The semantic latency above is therefore the cost of a near-duplicate hit; the layer's real-world hit rate depends on how often users re-ask in nearly the same words.
+**One caveat worth stating.** At 0.93 the semantic layer only catches near-duplicate phrasings, not genuine paraphrases. Measured against _"How does the platform combine vector search with keyword search?"_: reworded-but-recognisable variants scored 0.977–0.998 and hit, while true paraphrases such as _"How are vector search results and keyword search results fused together?"_ (0.892) and _"In what way does the system merge dense retrieval with BM25 keyword search?"_ (0.625) fell below the threshold and missed. The semantic latency above is therefore the cost of a near-duplicate hit; the layer's real-world hit rate depends on how often users re-ask in nearly the same words.
 
 These are local single-user numbers on one document, not production data. They measure what the cache saves when it hits, not how often it hits.
 
@@ -103,15 +104,15 @@ These are local single-user numbers on one document, not production data. They m
 
 Every external call is wrapped with bounded exponential backoff via `tenacity` ([backend/resilience.py](backend/resilience.py)):
 
-| Failure mode | How it's handled | Where |
-|---|---|---|
-| OpenAI API transient error | 3 attempts, expo backoff capped at 10 s, 30 s request timeout | [backend/rag/generate.py](backend/rag/generate.py) |
-| Stripe 5xx / rate-limit | `with_retry("stripe")` on `checkout.Session.create` | [backend/routes/v1/billing.py](backend/routes/v1/billing.py) |
-| Qdrant network hiccup | retry wrapper on upsert / search | [backend/rag/vector_store.py](backend/rag/vector_store.py) |
-| S3 / MinIO boto3 errors | boto3 `standard` retry mode | [backend/storage.py](backend/storage.py) |
-| Stripe webhook re-delivery | unique index on `processed_events.event_id` (+ 30-day TTL) — duplicate insert short-circuits with 200 | [backend/routes/v1/billing.py](backend/routes/v1/billing.py) |
-| Celery ingest failure | `autoretry_for=(APIError, ConnectionError)`, `retry_backoff=True`, `acks_late`; permanent failures logged to `failed_ingests` | [backend/tasks/ingest_tasks.py](backend/tasks/ingest_tasks.py) |
-| SIGTERM during request | `graceful_timeout=30` in gunicorn; Celery flushes OTel + closes clients on `worker_shutting_down` | [backend/gunicorn.conf.py](backend/gunicorn.conf.py) |
+| Failure mode               | How it's handled                                                                                                              | Where                                                          |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| OpenAI API transient error | 3 attempts, expo backoff capped at 10 s, 30 s request timeout                                                                 | [backend/rag/generate.py](backend/rag/generate.py)             |
+| Stripe 5xx / rate-limit    | `with_retry("stripe")` on `checkout.Session.create`                                                                           | [backend/routes/v1/billing.py](backend/routes/v1/billing.py)   |
+| Qdrant network hiccup      | retry wrapper on upsert / search                                                                                              | [backend/rag/vector_store.py](backend/rag/vector_store.py)     |
+| S3 / MinIO boto3 errors    | boto3 `standard` retry mode                                                                                                   | [backend/storage.py](backend/storage.py)                       |
+| Stripe webhook re-delivery | unique index on `processed_events.event_id` (+ 30-day TTL) — duplicate insert short-circuits with 200                         | [backend/routes/v1/billing.py](backend/routes/v1/billing.py)   |
+| Celery ingest failure      | `autoretry_for=(APIError, ConnectionError)`, `retry_backoff=True`, `acks_late`; permanent failures logged to `failed_ingests` | [backend/tasks/ingest_tasks.py](backend/tasks/ingest_tasks.py) |
+| SIGTERM during request     | `graceful_timeout=30` in gunicorn; Celery flushes OTel + closes clients on `worker_shutting_down`                             | [backend/gunicorn.conf.py](backend/gunicorn.conf.py)           |
 
 A `docai_external_retry_total{service}` counter in [backend/metrics.py](backend/metrics.py) surfaces retry rates in Grafana.
 
@@ -139,15 +140,15 @@ A `docai_external_retry_total{service}` counter in [backend/metrics.py](backend/
 
 ## Testing
 
-| Suite | Location | CI job |
-|---|---|---|
-| Backend unit | [backend/tests/](backend/tests/) | `backend` |
-| Backend coverage gate | `.coveragerc` + `--cov-fail-under=50` | `backend` |
-| Backend integration (testcontainers + real Mongo) | [backend/tests/integration/](backend/tests/integration/) | `integration` |
-| Frontend unit (vitest) | [frontend/src/**/__tests__/](frontend/src/) | `frontend-unit` |
-| E2E (Playwright vs docker-compose) | [frontend/tests/e2e/](frontend/tests/e2e/) | `e2e` |
-| RAG eval smoke | [backend/evals/](backend/evals/) | `evals-smoke` |
-| RAG eval nightly | same | scheduled workflow |
+| Suite                                             | Location                                                 | CI job             |
+| ------------------------------------------------- | -------------------------------------------------------- | ------------------ |
+| Backend unit                                      | [backend/tests/](backend/tests/)                         | `backend`          |
+| Backend coverage gate                             | `.coveragerc` + `--cov-fail-under=50`                    | `backend`          |
+| Backend integration (testcontainers + real Mongo) | [backend/tests/integration/](backend/tests/integration/) | `integration`      |
+| Frontend unit (vitest)                            | [frontend/src/\*\*/**tests**/](frontend/src/)            | `frontend-unit`    |
+| E2E (Playwright vs docker-compose)                | [frontend/tests/e2e/](frontend/tests/e2e/)               | `e2e`              |
+| RAG eval smoke                                    | [backend/evals/](backend/evals/)                         | `evals-smoke`      |
+| RAG eval nightly                                  | same                                                     | scheduled workflow |
 
 Runbook entries for common ops tasks (restart a stuck ingest, drain the DLQ, inspect Celery queues) live in [RUNBOOK.md](RUNBOOK.md).
 
@@ -155,23 +156,23 @@ Runbook entries for common ops tasks (restart a stuck ingest, drain the DLQ, ins
 
 ## Tech stack
 
-| Layer | Technology |
-|---|---|
-| Frontend | React 19, Vite, Tailwind, React Router |
-| Backend | Flask 3, Python 3.12, gunicorn |
-| Embeddings | `sentence-transformers` (all-MiniLM-L6-v2) |
-| Vector search | FAISS HNSW (default) or Qdrant |
+| Layer          | Technology                                                   |
+| -------------- | ------------------------------------------------------------ |
+| Frontend       | React 19, Vite, Tailwind, React Router                       |
+| Backend        | Flask 3, Python 3.12, gunicorn                               |
+| Embeddings     | `sentence-transformers` (all-MiniLM-L6-v2)                   |
+| Vector search  | FAISS HNSW (default) or Qdrant                               |
 | Lexical search | BM25 (rank-bm25) fused with dense via Reciprocal Rank Fusion |
-| LLM | OpenAI `gpt-4o-mini` (configurable) |
-| Auth | JWT (PyJWT), bcrypt, Google OAuth |
-| Primary DB | MongoDB 7 |
-| Cache / broker | Redis 7 |
-| Async jobs | Celery 5 |
-| Object storage | local disk, S3, or MinIO |
-| Billing | Stripe Checkout (test mode) |
-| Tracing | OpenTelemetry + Jaeger |
-| Metrics | Prometheus + Grafana |
-| Logs | structlog (JSON) |
+| LLM            | OpenAI `gpt-4o-mini` (configurable)                          |
+| Auth           | JWT (PyJWT), bcrypt, Google OAuth                            |
+| Primary DB     | MongoDB 7                                                    |
+| Cache / broker | Redis 7                                                      |
+| Async jobs     | Celery 5                                                     |
+| Object storage | local disk, S3, or MinIO                                     |
+| Billing        | Stripe Checkout (test mode)                                  |
+| Tracing        | OpenTelemetry + Jaeger                                       |
+| Metrics        | Prometheus + Grafana                                         |
+| Logs           | structlog (JSON)                                             |
 
 ---
 
@@ -194,22 +195,22 @@ Tunable RAG knobs live in [backend/rag/config.py](backend/rag/config.py): chunk 
 
 Full schema in [backend/docs/API.md](backend/docs/API.md). Versioned under `/api/v1/`:
 
-| Method | Path | Notes |
-|---|---|---|
-| POST | `/api/v1/auth/register` | email + password |
-| POST | `/api/v1/auth/login` | email + password |
-| POST | `/api/v1/auth/google` | Google OAuth access token |
-| GET | `/api/v1/auth/verify` | token → current user |
-| POST | `/api/v1/chat` | ask (text only) |
-| POST | `/api/v1/chat/upload` | ask + upload files in one turn |
-| POST | `/api/v1/upload` | upload only |
-| GET / DELETE | `/api/v1/documents[/<id>]` | user's docs |
-| POST | `/api/v1/feedback` | thumbs up / down / clear |
-| GET | `/api/v1/billing/plans` | plan metadata |
-| POST | `/api/v1/billing/create-checkout-session` | Stripe Checkout |
-| POST | `/api/v1/billing/webhook` | Stripe → server |
-| GET | `/api/v1/health` | liveness |
-| GET | `/metrics` | Prometheus |
+| Method       | Path                                      | Notes                          |
+| ------------ | ----------------------------------------- | ------------------------------ |
+| POST         | `/api/v1/auth/register`                   | email + password               |
+| POST         | `/api/v1/auth/login`                      | email + password               |
+| POST         | `/api/v1/auth/google`                     | Google OAuth access token      |
+| GET          | `/api/v1/auth/verify`                     | token → current user           |
+| POST         | `/api/v1/chat`                            | ask (text only)                |
+| POST         | `/api/v1/chat/upload`                     | ask + upload files in one turn |
+| POST         | `/api/v1/upload`                          | upload only                    |
+| GET / DELETE | `/api/v1/documents[/<id>]`                | user's docs                    |
+| POST         | `/api/v1/feedback`                        | thumbs up / down / clear       |
+| GET          | `/api/v1/billing/plans`                   | plan metadata                  |
+| POST         | `/api/v1/billing/create-checkout-session` | Stripe Checkout                |
+| POST         | `/api/v1/billing/webhook`                 | Stripe → server                |
+| GET          | `/api/v1/health`                          | liveness                       |
+| GET          | `/metrics`                                | Prometheus                     |
 
 ---
 
