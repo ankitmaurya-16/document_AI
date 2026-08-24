@@ -4,9 +4,7 @@ testcontainers/pymongo are unavailable.
 """
 from __future__ import annotations
 
-import os
 import shutil
-from pathlib import Path
 
 import pytest
 
@@ -34,6 +32,21 @@ def mongo_uri(mongo_container):
 
 
 # --- App bound to the real Mongo ---------------------------------------------
+
+# Retrieval is stubbed, but it must return *something*: the /chat route
+# short-circuits on an empty chunk list and answers "I don't have enough
+# information..." without ever reaching generate_answer. Returning one chunk
+# keeps the route on the real path so the test exercises the wiring it claims
+# to (retrieve -> generate -> persist), not the no-documents guard.
+_STUB_CHUNKS = [
+    {
+        "chunk_id": "itest-c1",
+        "source": "integration-fixture.txt",
+        "text": "Integration fixture chunk.",
+    }
+]
+
+
 @pytest.fixture
 def app(mongo_uri, monkeypatch, tmp_path):
     """Flask app pointed at a real, per-test Mongo DB.
@@ -72,7 +85,7 @@ def app(mongo_uri, monkeypatch, tmp_path):
     import numpy as _np
 
     monkeypatch.setattr(
-        retrieve_mod, "retrieve_top_chunks", lambda prompt, **kw: [], raising=False
+        retrieve_mod, "retrieve_top_chunks", lambda prompt, **kw: _STUB_CHUNKS, raising=False
     )
     monkeypatch.setattr(
         retrieve_mod, "embed_query", lambda q: _np.zeros(384, dtype="float32"), raising=False
@@ -86,7 +99,9 @@ def app(mongo_uri, monkeypatch, tmp_path):
     from app import create_app
     from routes.v1 import rag_chat as rag_chat_mod
 
-    monkeypatch.setattr(rag_chat_mod, "retrieve_top_chunks", lambda *a, **kw: [], raising=False)
+    monkeypatch.setattr(
+        rag_chat_mod, "retrieve_top_chunks", lambda *a, **kw: _STUB_CHUNKS, raising=False
+    )
     monkeypatch.setattr(
         rag_chat_mod, "embed_query", lambda q: _np.zeros(384, dtype="float32"), raising=False
     )

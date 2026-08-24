@@ -31,7 +31,7 @@ const Credits = () => {
         const res = await fetch(`${API_URL}/api/v1/billing/plans`)
         const data = await res.json()
         if (!cancelled) setPlans(data.plans || [])
-      } catch (e) {
+      } catch {
         if (!cancelled) setError("Failed to load plans")
       } finally {
         if (!cancelled) setLoading(false)

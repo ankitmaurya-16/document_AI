@@ -7,7 +7,7 @@ const ChatBox = () => {
   const containerRef = useRef(null)
   const fileInputRef = useRef(null)
 
-  const { selectedChat, setSelectedChat, token, API_URL, createNewChat, fetchUserChats, user, refreshUser } = useAppContext()
+  const { selectedChat, token, API_URL, fetchUserChats, refreshUser } = useAppContext()
 
   const [messages, setMessages] = useState([])
   const [loading, setLoading] = useState(false)

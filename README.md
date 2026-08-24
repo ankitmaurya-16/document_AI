@@ -78,6 +78,24 @@ The CI `evals-smoke` job runs a 5-question subset on every PR and compares Recal
 
 Methodology, scoring rubric, and the LLM-judge prompt are documented in [backend/evals/README.md](backend/evals/README.md).
 
+### Cache effectiveness
+
+Two layers sit in front of the LLM call in [backend/cache.py](backend/cache.py): an exact layer keyed on a SHA-256 of the normalised query (1 h TTL), and a semantic layer that reuses an answer when the query embedding is within 0.93 cosine of a cached one (30 min TTL). A hit on either skips retrieval *and* generation.
+
+| Path | Median latency | LLM prompt tokens | Runs |
+|---|---|---|---|
+| Miss (embed → hybrid retrieve → rerank → LLM) | **1.123 s** | 519 | 12 |
+| Exact-cache hit (identical query) | **0.007 s** | 0 | 7 |
+| Semantic-cache hit (reworded query) | **0.016 s** | 0 | 9 |
+
+A served hit is ~168× faster than a miss on the exact layer and ~69× on the semantic layer, and costs zero prompt tokens because the provider is never called. Miss latency ranged 0.49–1.67 s; the median is reported.
+
+**Method.** Single user, one 1,434-byte plain-text document indexed into 5 chunks, questions answered against it over HTTP. Each request was classified by diffing the `docai_cache_hit_total{layer}` / `docai_cache_miss_total{layer}` counters on `/metrics` around the call, never by timing, and token counts came from a pass-through proxy recording `usage.prompt_tokens` (the app records none). Reranking enabled, cache backend in-memory (no `REDIS_URL`), LLM `openai/gpt-oss-120b` via Groq. Measured on an Apple M3 (8-core, 8 GB, macOS 26.6.2), Python 3.12.7.
+
+**One caveat worth stating.** At 0.93 the semantic layer only catches near-duplicate phrasings, not genuine paraphrases. Measured against *"How does the platform combine vector search with keyword search?"*: reworded-but-recognisable variants scored 0.977–0.998 and hit, while true paraphrases such as *"How are vector search results and keyword search results fused together?"* (0.892) and *"In what way does the system merge dense retrieval with BM25 keyword search?"* (0.625) fell below the threshold and missed. The semantic latency above is therefore the cost of a near-duplicate hit; the layer's real-world hit rate depends on how often users re-ask in nearly the same words.
+
+These are local single-user numbers on one document, not production data. They measure what the cache saves when it hits, not how often it hits.
+
 ---
 
 ## Reliability

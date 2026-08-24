@@ -4,7 +4,7 @@ import { assets } from '../assets/assets'
 import moment from 'moment/moment'
 const Sidebar = ({isMenuOpen, setIsMenuOpen}) => {
 
-    const {chats, setSelectedChat, theme, setTheme, user, navigate, createNewChat, deleteChat, logout, refreshChat} = useAppContext()
+    const {chats, theme, setTheme, user, navigate, createNewChat, deleteChat, logout, refreshChat} = useAppContext()
     const [search, setSearch] = useState('')
 
     const handleChatSelect = async (chat) => {
