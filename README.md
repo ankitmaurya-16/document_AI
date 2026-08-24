@@ -19,8 +19,9 @@ A full-stack Retrieval-Augmented Generation system: upload documents, ask natura
 ---
 
 ## Live demo
+<video src="https://github.com/user-attachments/assets/fe85bf3e-4a40-4713-abc4-6f235b80201f" controls width="800"></video>
 
-Not hosted yet — run it locally with `docker compose up --build`. The intended cloud topology is sketched in [ARCHITECTURE.md](ARCHITECTURE.md) § Deployment topology.
+Not hosted right now — run it locally with `docker compose up --build`. The intended cloud topology is sketched in [ARCHITECTURE.md](ARCHITECTURE.md) § Deployment topology.
 
 ---
 
