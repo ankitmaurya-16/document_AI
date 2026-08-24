@@ -10,8 +10,8 @@
 # ruff and bandit are held to the same versions as .pre-commit-config.yaml so
 # that the local hook and CI enforce an identical standard. Bump both together.
 
-ruff==0.6.9          # == .pre-commit-config.yaml ruff-pre-commit rev v0.6.9
-bandit==1.7.10       # == .pre-commit-config.yaml bandit rev 1.7.10
+ruff==0.16.4          # == .pre-commit-config.yaml ruff-pre-commit rev v0.6.9
+bandit==1.9.4       # == .pre-commit-config.yaml bandit rev 1.7.10
 pip-audit==2.10.1
 pytest==9.1.1
 pytest-cov==7.1.0
